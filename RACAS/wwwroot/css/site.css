@@ -1,0 +1,134 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background */
+a {
+  color: #0366d6;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  font-size: 14px;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+form {
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+    font-family: 'Frutiger,Helvetica,Arial,Verdana,sans-serif';
+    font-size: 1rem;
+}
+.footer {
+  /*position: absolute;*/
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px; /* Vertically center the text there */
+}
+
+.bar-back {
+    background-color: #AB1032;
+    font-size: 18px;
+    font-weight:bold;
+    font-family: 'Frutiger,Helvetica,Arial,Verdana,sans-serif';
+    color: white;
+}
+
+.required-field{
+    color:red;
+}
+
+.field-validation-error{
+    color:red;
+}
+
+.deleted{
+    text-decoration:line-through solid red;
+}
+
+.undelete{
+    text-decoration:inherit;
+}
+
+.deleteH{
+    visibility:hidden;
+}
+
+.deleteS
+{
+    visibility:visible;
+}
+
+.undoH{
+    visibility:hidden;
+}
+
+.undo{
+    visibility:visible;
+}
+
+#gototopBtn {
+    display: none; /* Hidden by default */
+    position: fixed; /* Fixed/sticky position */
+    bottom: 20px; /* Place the button at the bottom of the page */
+    right: 30px; /* Place the button 30px from the right */
+    z-index: 99; /* Make sure it does not overlap */        
+    cursor: pointer; /* Add a mouse pointer on hover */
+    padding: 15px; /* Some padding */        
+    background-image: url(../images/gototop.png);
+    width:48px;
+    height:48px;
+}
+
+.viewBox {
+    border: solid 1px #CED4DA;
+    border-radius: .25rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    padding: .375rem .75rem;
+}

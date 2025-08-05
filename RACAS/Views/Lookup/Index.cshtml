@@ -1,0 +1,956 @@
+﻿@using Microsoft.AspNetCore.Http
+@using RACAS.Model
+@using RACAS.Controllers
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Localization
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IStringLocalizer<HomeController> Localizer
+@{
+    string _userTypeId = Context.Request.Query["UserTypeId"];
+
+    string currCul = "";
+    string curCulName = "English";
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+
+    if (requestCulture.RequestCulture.Culture.Name == "ar-SA")
+    {
+        curCulName = "Arabic";
+        currCul = "https://cdn.datatables.net/plug-ins/1.12.1/i18n/ar.json";
+    }
+    List<MenuViewModel> menuList = (List<MenuViewModel>)ViewData["UserRoleMenu"];
+    bool CanCreate = false, CanDelete = false, CanEdit = false, CanExport = false, CanEmail = false, CanRead = false;
+    if (menuList?.Count > 0)
+    {
+        foreach (var m in menuList)
+        {
+            if (m.ModuleId == "lilookups")
+            {
+                if (m.ActionName == "Create")
+                    CanCreate = true;
+                if (m.ActionName == "Edit")
+                    CanEdit = true;
+                if (m.ActionName == "Delete")
+                    CanDelete = true;
+                if (m.ActionName == "Export")
+                    CanExport = true;
+                if (m.ActionName == "Email")
+                    CanEmail = true;
+                if (m.ActionName == "Read")
+                    CanRead = true;
+            }
+        }
+    }
+
+    int UserTypeId = 0;
+    try
+    {
+        UserTypeId = Convert.ToInt32(HttpContextAccessor.HttpContext.Session.GetString("UserTypeId"));
+        if (UserTypeId == 1)
+        {
+            CanCreate = true; CanDelete = true; CanEdit = true; CanExport = true; CanEmail = true; CanRead = true;
+        }
+    }
+    catch (Exception ex)
+    {
+
+    }
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model RACAS.Model.LookupModel
+<section class="content-header">
+    <h1>
+        @Localizer["lookups"]
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> @Localizer["Home"]</a></li>
+        <li><a href="#">@Localizer["lookups"]</a></li>
+    </ol>
+</section>
+
+<section class="content" id="appCat">
+    <div class="row">
+        <div class="col-md-6" style="min-height:425px">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">@Localizer["Country"]</h3>
+                    @{
+                        if (CanCreate)
+                        {
+                            <button type="button" class="btn btn-primary" v-on:click="add('Country')">@Localizer["AddCountry"] </button>
+                        }
+                    }
+
+                </div>
+                <div class="box-body" style="height: 390px; overflow-x: auto; padding-left: 5px; padding-right: 5px; padding-bottom: 20px">
+                    <div class="row" style="margin-left:0px; margin-right:0px">
+                        <div class="col-md-12">
+                            <table id="example1" class="table table-bordered table-striped datatable">
+                                <thead>
+                                    <tr>
+                                        <th>#@Localizer["Number"]</th>
+                                        <th>@Localizer["CountryCode"]</th>
+                                        <th>@Localizer["CountryName"]</th>
+
+                                        @{
+                                            if (CanEdit)
+                                            {
+                                                <th style="width:20px">@Localizer["Edit"]</th>
+                                            }
+                                        }
+                                        @{
+                                            if (CanDelete)
+                                            {
+                                                <th style="width:20px">@Localizer["Delete"]</th>
+                                            }
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (Model.CountryList.Count > 0 && CanRead)
+                                        {
+                                            int count = 0;
+                                            for (int i = 0; i < Model.CountryList.Count; i++)
+                                            {
+
+                                                var r = Model.CountryList[i];
+                                                <tr>
+                                                    <td>@(count + 1)</td>
+                                                    <td>@r.CountryCode</td>
+                                                    <td>@r.CountryName</td>
+
+                                                    @{
+                                                        if (CanEdit)
+                                                        {
+                                                            <td> <a v-on:click="edit('@r.Id','@r.CountryCode','@Html.Raw(r.CountryName.Replace("'", "\\'"))','','','','','Country')"> @Localizer["Edit"] </a></td>
+                                                        }
+                                                    }
+
+
+                                                    @{
+                                                        if (CanDelete)
+                                                        {
+                                                            <td> <a v-on:click="Del('@r.Id','Country')"> @Localizer["Delete"] </a></td>
+                                                        }
+                                                    }
+
+                                                </tr>
+                                                count++;
+                                            }
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6" style="min-height:425px">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">@Localizer["Branch"]</h3>
+                    @{
+                        if (CanCreate)
+                        {
+                            <button type="button" class="btn btn-primary" v-on:click="add('Branch')">@Localizer["AddBranch"] </button>
+                        }
+                    }
+
+                </div>
+                <div class="box-body" style="height: 390px; overflow-x: auto; padding-left: 5px; padding-right: 5px; padding-bottom: 20px">
+
+                    <div class="row" style="margin-left:0px; margin-right:0px">
+                        <div class="col-md-12">
+                            <table id="example1" class="table table-bordered table-striped datatable">
+                                <thead>
+                                    <tr>
+                                        <th>#@Localizer["Number"]</th>
+                                        <th>@Localizer["Name"]</th>
+                                        <th>@Localizer["BranchCode"]</th>
+
+                                        @{
+                                            if (CanEdit)
+                                            {
+                                                <th style="width:20px">@Localizer["Edit"]</th>
+                                            }
+                                        }
+                                        @{
+                                            if (CanDelete)
+                                            {
+                                                <th style="width:20px">@Localizer["Delete"]</th>
+                                            }
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (Model?.BranchList.Count > 0 && CanRead)
+                                        {
+                                            int count = 0;
+                                            for (int i = 0; i < Model?.BranchList.Count; i++)
+                                            {
+                                                var r = Model?.BranchList[i];
+                                                <tr>
+                                                    <td>@(count + 1)</td>
+                                                    <td>@r.BranchName</td>
+                                                    <td>@r.BranchCode</td>
+
+
+                                                    @{
+                                                        if (CanEdit)
+                                                        {
+                                                            <td> <a v-on:click="edit('@r.Id','@r.BranchCode','@Html.Raw(r.BranchName.Replace("'", "\\'"))','@r.Division','@r.CountryId','','','Branch')"> @Localizer["Edit"] </a></td>
+                                                        }
+                                                    }
+                                                    @{
+                                                        if (CanDelete)
+                                                        {
+                                                            <td> <a v-on:click="Del('@r.Id','Branch')"> @Localizer["Delete"] </a></td>
+                                                        }
+                                                    }
+                                                </tr>
+                                                count++;
+                                            }
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6" style="min-height:425px">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">@Localizer["CausedBy"]</h3>
+                    @{
+                        if (CanCreate)
+                        {
+                            <button type="button" class="btn btn-primary" v-on:click="add('CausedBy')">@Localizer["AddCausedBy"] </button>
+                        }
+                    }
+
+                </div>
+                <div class="box-body" style="height: 390px; overflow-x: auto; padding-left: 5px; padding-right: 5px; padding-bottom: 20px">
+
+                    <div class="row" style="margin-left:0px; margin-right:0px">
+                        <div class="col-md-12">
+                            <table id="example1" class="table table-bordered table-striped datatable">
+                                <thead>
+                                    <tr>
+                                        <th>#@Localizer["Number"]</th>
+                                        <th>@Localizer["CausedBy"]</th>
+                                        @{
+                                            if (CanEdit)
+                                            {
+                                                <th style="width:20px">@Localizer["Edit"]</th>
+                                            }
+                                        }
+                                        @{
+                                            if (CanDelete)
+                                            {
+                                                <th style="width:20px">@Localizer["Delete"]</th>
+                                            }
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (Model?.CausedByList.Count > 0 && CanRead)
+                                        {
+                                            int count = 0;
+                                            for (int i = 0; i < Model?.CausedByList.Count; i++)
+                                            {
+                                                var r = Model?.CausedByList[i];
+                                                <tr>
+                                                    <td>@(count + 1)</td>
+                                                    <td>@r.Causes</td>
+
+                                                    @{
+                                                        if (CanEdit)
+                                                        {
+                                                            <td> <a v-on:click="edit('@r.Id','','','','','@r.Causes','','Caused')"> @Localizer["Edit"] </a></td>
+                                                        }
+                                                    }
+                                                    @{
+                                                        if (CanDelete)
+                                                        {
+                                                            <td> <a v-on:click="Del('@r.Id','caused')"> @Localizer["Delete"] </a></td>
+                                                        }
+                                                    }
+                                                </tr>
+                                                count++;
+                                            }
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6" style="min-height:425px">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">@Localizer["Description"]</h3>
+                    @{
+                        if (CanCreate)
+                        {
+                            <button type="button" class="btn btn-primary" v-on:click="add('Description')">@Localizer["AddDescription"] </button>
+                        }
+                    }
+
+                </div>
+                <div class="box-body" style="height: 390px; overflow-x: auto; padding-left: 5px; padding-right: 5px; padding-bottom: 20px">
+
+                    <div class="row" style="margin-left:0px; margin-right:0px">
+                        <div class="col-md-12">
+                            <table id="example1" class="table table-bordered table-striped datatable">
+                                <thead>
+                                    <tr>
+                                        <th>#@Localizer["Number"]</th>
+                                        <th>@Localizer["Description"]</th>
+                                        @{
+                                            if (CanEdit)
+                                            {
+                                                <th style="width:20px">@Localizer["Edit"]</th>
+                                            }
+                                        }
+                                        @{
+                                            if (CanDelete)
+                                            {
+                                                <th style="width:20px">@Localizer["Delete"]</th>
+                                            }
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (Model?.DescriptionList.Count > 0 && CanRead)
+                                        {
+                                            int count = 0;
+                                            for (int i = 0; i < Model?.DescriptionList.Count; i++)
+                                            {
+                                                var r = Model?.DescriptionList[i];
+                                                <tr>
+                                                    <td>@(count + 1)</td>
+                                                    <td>@r.Description</td>
+
+                                                    @{
+                                                        if (CanEdit)
+                                                        {
+                                                            <td> <a v-on:click="edit('@r.Id','','','','','','@r.Description','Description')"> @Localizer["Edit"] </a></td>
+                                                        }
+                                                    }
+                                                    @{
+                                                        if (CanDelete)
+                                                        {
+                                                            <td> <a v-on:click="Del('@r.Id','Description')"> @Localizer["Delete"] </a></td>
+                                                        }
+                                                    }
+                                                </tr>
+                                                count++;
+                                            }
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-6" style="display:none" >
+
+
+            <div class="box">
+                <div class="box-header">
+                    <div class="col-md-5">
+                        <form id="validationForm">
+                            <label> @Localizer["UserType"] <span style="color:red">*</span></label>
+                            <input type="text" class="form-control validate[required]" v-model="usertype.UserType" />
+                            <input type="hidden" v-model="usertype.Id" />
+                        </form>
+                    </div>
+                    <div class="col-md-2" style="padding-top:25px">
+                        @{
+                            if (CanCreate)
+                            {
+                                <button type="button" class="btn btn-primary" v-on:click="insertType($event)">@Localizer["Save"]</button>
+                            }
+                        }
+
+                    </div>
+                </div>
+                <div class="box-body">
+
+                    <div class="row" style="margin-left:0px; margin-right:0px">
+
+                        <div class="col-md-12" style="overflow-x: auto; padding-left: 5px; padding-right: 5px; padding-bottom: 20px">
+                            <table class="table table-bordered table-striped datatable" id="example1">
+                                <thead>
+                                    <tr>
+                                        <th>#@Localizer["No"]</th>
+                                        <th>@Localizer["UserType"]</th>
+
+                                        @{
+                                            if (CanEdit)
+                                            {
+                                                <th>@Localizer["Edit"]</th>
+                                            }
+                                        }
+
+                                        @{
+                                            if (CanDelete)
+                                            {
+                                                <th style="width:20px">@Localizer["Delete"]</th>
+                                            }
+                                        }
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (Model?.UserTypeList.Count > 0 && CanRead)
+                                        {
+                                            for (int i = 0; i < Model.UserTypeList.Count; i++)
+                                            {
+                                                var r = Model.UserTypeList[i];
+                                                if (r.Id != 1)
+                                                {
+                                                    <tr>
+                                                        <td>@(i + 1)</td>
+
+
+                                                        <td>@r.TypeName </td>
+                                                        @{
+                                                            if (CanEdit)
+                                                            {
+                                                                <td><a v-on:click="EditType(@r.Id, '@r.TypeName')">Edit</a> </td>
+                                                            }
+                                                        }
+
+
+                                                        @{
+                                                            if (CanDelete)
+                                                            {
+                                                                <td> <a v-on:click="DelType('@r.Id')"> @Localizer["Delete"] </a></td>
+                                                            }
+                                                        }
+
+                                                    </tr>
+                                                }
+                                            }
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    @* /////////////////////////////// Description Table ///////////////////////////////////*@
+
+    <div id="countryLookup" class="modal fade">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content tx-size-sm">
+                <div class="modal-header pd-x-20">
+                    <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" style="float:left">{{country.AddEdit}}</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pd-20">
+                    <form id="countryform">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input type="hidden" v-model="country.Id" />
+                                <label>@Localizer["CountryCode"]</label>
+                                <input type="text" class="form-control validate[required]" v-model="country.CountryCode" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>@Localizer["CountryName"]</label>
+                                <input class="form-control validate[required]" type="text" v-model="country.CountryName" />
+                            </div>
+                        </div>
+                    </form>
+
+
+                </div>
+                <div class="modal-footer">
+                    @{
+                        if (CanCreate)
+                        {
+                            <button type="button" class="btn btn-primary" v-on:click="insert($event)">@Localizer["Save"]</button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="branchLookup" class="modal fade">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content tx-size-sm">
+                <div class="modal-header pd-x-20">
+                    <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" style="float:left">{{branch.AddEdit}}</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pd-20">
+                    <form id="branchform">
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>@Localizer["Country"]</label>
+                                <select class="form-control  validate[required]" v-model="branch.CountryId">
+                                    @if (Model.CountryList.Count > 0)
+                                    {
+                                        int count = 0;
+                                        for (int i = 0; i < Model.CountryList.Count; i++)
+                                        {
+
+                                            var r = Model.CountryList[i];
+                                            <option value="@r.Id">@Html.Raw(r.CountryName.Replace("'", "\\'"))</option>
+
+                                            count++;
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input type="hidden" v-model="branch.Id" />
+                                <label>@Localizer["BranchCode"]</label>
+                                <input type="text" class="form-control  validate[required]" v-model="branch.BranchCode" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>@Localizer["BranchName"]</label>
+                                <input class="form-control  validate[required]" type="text" v-model="branch.BranchName" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>@Localizer["Division"]</label>
+                                <input class="form-control  validate[required]" type="text" v-model="branch.Division" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    @{
+                        if (CanCreate)
+                        {
+                            <button type="button" class="btn btn-primary" v-on:click="insert($event)">@Localizer["Save"]</button>
+                        }
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="causedByLookup" class="modal fade">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content tx-size-sm">
+                <div class="modal-header pd-x-20">
+                    <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" style="float:left">{{caused.AddEdit}}</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pd-20">
+                    <form id="causedByform">
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input type="hidden" v-model="caused.Id" />
+                                <label>@Localizer["CausedBy"]</label>
+                                <input type="text" class="form-control  validate[required]" v-model="caused.Causes" />
+                            </div>
+                            <div class="col-md-12">
+                                <label>@Localizer["ObjectNr"]</label>
+                                <input type="text" class="form-control  validate[required]" v-model="caused.ObjectNr" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    @{
+                        if (CanCreate)
+                        {
+                            <button type="button" class="btn btn-primary" v-on:click="insert($event)">@Localizer["Save"]</button>
+                        }
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="descriptionLookup" class="modal fade">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content tx-size-sm">
+                <div class="modal-header pd-x-20">
+                    <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" style="float:left">{{description.AddEdit}}</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pd-20">
+                    <form id="descriptionform">
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input type="hidden" v-model="description.Id" />
+                                <label>@Localizer["Description"]</label>
+                                <input type="text" class="form-control  validate[required]" v-model="description.Description" />
+                            </div>
+                            <div class="col-md-12">
+                                <label>@Localizer["ObjectNr"]</label>
+                                <input type="text" class="form-control  validate[required]" v-model="caused.ObjectNr" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    @{
+                        if (CanCreate)
+                        {
+                            <button type="button" class="btn btn-primary" v-on:click="insert($event)">@Localizer["Save"]</button>
+                        }
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+
+@*///////////////////////////////////   UserTypes     /////////////////////////////////////////*@
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+
+
+
+@section scripts {
+    <script>
+        var objCommon = new Common();
+        var currCulName = '@curCulName';
+        var LanguageUrl = '@currCul';
+
+        $(document).ready(function () {
+            // $("#leftmenu li").removeClass("active");
+            // $("#liusertypes").addClass("active");
+
+            var RightsData = [];
+
+            // Vue instance for categories
+            var appCat = new Vue({
+                el: '#appCat',
+                data: {
+                    country: {
+                        Name: "",
+                        Id: 0,
+                        Description: "",
+                        AddEdit: "Add New"
+                    },
+                    branch: {
+                        BranchCode: "",
+                        Id: 0,
+                        BranchName: "",
+                        CountryId: 0,
+                        Division: "",
+                        AddEdit: "Add New"
+                    },
+                    caused: {
+                        Causes: "",
+                        ObjectNr:0,
+                        Id: 0,
+                        AddEdit: "Add New"
+                    },
+                    description: {
+                        Description: "",
+                        ObjectNr: 0,
+                        Id: 0,
+                        AddEdit: "Add New"
+                    },
+                    usertype: {
+                        UserType: "",
+                        Id: 0
+                    },
+                    LookupType: "",
+                },
+                methods: {
+                    add(type) {
+                        this.LookupType = type;
+                        if (this.LookupType == "Country") {
+                            this.country.AddEdit = "Add New Country";
+                            this.country.CountryCode = "";
+                            this.country.CountryName = "";
+                            $("#countryLookup").modal("show");
+                        } else if (this.LookupType == "Branch") {
+                            this.branch.AddEdit = "Add New Branch";
+                            this.branch.BranchCode = "";
+                            this.branch.BranchName = "";
+                            this.branch.Division = "";
+                            this.branch.CountryId = 0;
+                            $("#branchLookup").modal("show");
+                        } else if (this.LookupType == "Description") {
+                            this.description.AddEdit = "Add New Description";
+                            this.description.Description = "";
+                            this.description.ObjectNr = 0;
+                            $("#descriptionLookup").modal("show");
+                        } else {
+                            this.caused.AddEdit = "Add New CausedBy";
+                            this.caused.Causes = "";
+                            this.caused.ObjectNr = 0;
+                            $("#causedByLookup").modal("show");
+                        }
+                    },
+                    insert($event) {
+                        if (this.LookupType == "Country") {
+                            if (!objCommon.Validate("#countryform"))
+                                return;
+
+                            this.country.Id = Number(this.country.Id);
+
+                            var param = {
+                                CountryName: this.country.CountryName,
+                                Id: this.country.Id,
+                                CountryCode: this.country.CountryCode
+                            };
+
+                            objCommon.AjaxCall("/Lookup/insertCountry", JSON.stringify(param), "POST", true, function (response) {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: "Data has been saved successfully!",
+                                    icon: "success"
+                                });
+                                $("#countryLookup").modal("hide");
+                                window.location.reload();
+                            }, $event.currentTarget);
+                        } else if (this.LookupType == "Branch") {
+                            if (!objCommon.Validate("#branchform"))
+                                return;
+
+                            this.branch.Id = Number(this.branch.Id);
+                            this.branch.CountryId = Number(this.branch.CountryId);
+                            var param = {
+                                BranchName: this.branch.BranchName,
+                                Id: this.branch.Id,
+                                BranchCode: this.branch.BranchCode,
+                                Division: this.branch.Division,
+                                CountryId: this.branch.CountryId
+                            };
+
+                            objCommon.AjaxCall("/Lookup/insertBranch", JSON.stringify(param), "POST", true, function (response) {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: "Data has been saved successfully!",
+                                    icon: "success"
+                                });
+                                $("#branchLookup").modal("hide");
+                                window.location.reload();
+                            }, $event.currentTarget);
+                        } else if (this.LookupType == "Description") {
+                            if (!objCommon.Validate("#descriptionform"))
+                                return;
+
+                            this.description.Id = Number(this.description.Id);
+                            var param = {
+                                Description: this.description.Description,
+                                ObjectNr: Number(this.description.ObjectNr),
+                                Id: this.description.Id,
+                            };
+
+                            objCommon.AjaxCall("/Lookup/insertDescription", JSON.stringify(param), "POST", true, function (response) {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: "Data has been saved successfully!",
+                                    icon: "success"
+                                });
+                                $("#descriptionLookup").modal("hide");
+                                window.location.reload();
+                            }, $event.currentTarget);
+                        } else {
+                            if (!objCommon.Validate("#causedByform"))
+                                return;
+
+                            this.caused.Id = Number(this.caused.Id);
+                            var param = {
+                                Causes: this.caused.Causes,
+                                ObjectNr: Number(this.caused.ObjectNr),
+                                Id: this.caused.Id,
+                            };
+
+                            objCommon.AjaxCall("/Lookup/insertCausedBy", JSON.stringify(param), "POST", true, function (response) {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: "Data has been saved successfully!",
+                                    icon: "success"
+                                });
+                                $("#causedByLookup").modal("hide");
+                                window.location.reload();
+                            }, $event.currentTarget);
+                        }
+                    },
+                    Alert(id) {
+                        this.Id = id;
+                        $("#confirmmodel").modal("show");
+                    },
+                    Del(id, type) {
+                        var url = "/Lookup/delete";
+                        if (type == "Branch") {
+                            url = "/Lookup/deleteBranch";
+                        } else if (type == "Description") {
+                            url = "/Lookup/deleteDescription";
+                        } else {
+                            url = "/Lookup/deleteCausedBy";
+                        }
+
+
+                        Swal.fire({
+                            title: "Are you sure?",
+                            text: "You won't be able to revert this!",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Yes, delete it!"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+
+                                var param = {
+                                    Id: Number(id)
+                                };
+                                objCommon.AjaxCall(url, JSON.stringify(param), "POST", true, function (response) {
+                                    if (d == "success") {
+                                        Swal.fire({
+                                            title: "Deleted!",
+                                            text: "Record has been deleted.",
+                                            icon: "success"
+                                        });
+                                        window.location.reload();
+                                    }
+                                    else {
+                                        objCommon.ShowMessage(d, "error");
+                                    }
+                                });
+
+                            }
+                        });
+
+                     
+                    },
+                    edit(id, code, name, devision, countryid, Causes, description, type) {
+                        console.log(Causes);
+                        this.LookupType = type;
+                        if (this.LookupType == "Country") {
+                            this.country.AddEdit = "Edit Country";
+                            this.country.Id = id;
+                            this.country.CountryCode = code;
+                            this.country.CountryName = name;
+                            $("#countryLookup").modal("show");
+                        } else if (this.LookupType == "Branch") {
+                            this.branch.AddEdit = "Edit Branch";
+                            this.branch.Id = id;
+                            this.branch.BranchCode = code;
+                            this.branch.BranchName = name;
+                            this.branch.Division = devision;
+                            this.branch.CountryId = countryid;
+                            $("#branchLookup").modal("show");
+                        } else if (this.LookupType == "Description") {
+                            this.description.AddEdit = "Edit Description";
+                            this.description.Id = id;
+                            this.description.Description = description;
+                            $("#descriptionLookup").modal("show");
+                        } else {
+                            this.caused.AddEdit = "Edit CausedBy";
+                            this.caused.Id = id;
+                            this.caused.Causes = Causes;
+                            $("#causedByLookup").modal("show");
+                        }
+                    },
+                    insertType($event) {
+                        if (!objCommon.Validate("#validationForm"))
+                            return;
+
+                        var dataParam = {
+                            Id: Number(this.usertype.Id),
+                            TypeName: this.usertype.UserType
+                        };
+
+                        objCommon.AjaxCall("/Lookup/insertType", JSON.stringify(dataParam), "POST", true, function (d) {
+                            console.log(d);
+                            if (d == "success") {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: "Data has been saved successfully!",
+                                    icon: "success"
+                                });
+                             
+                                window.location.reload();
+                            } else {
+                                objCommon.ShowMessage(d, "error");
+                            }
+                        }, $event.currentTarget);
+                    },
+                    AlertType(id) {
+                        this.usertype.Id = id;
+                    },
+                    EditType(id, name) {
+                        this.usertype.Id = id;
+                        this.usertype.UserType = name;
+                    },
+                    DelType(id) {
+                        var param = {
+                            UserTypeId: Number(id),
+                        };
+                        objCommon.AjaxCall("/Lookup/deleteUserType", $.param(param), "GET", true, function (response) {
+                            window.location.reload();
+                        });
+                    }
+                }
+            });
+
+            $("#leftmenu li").removeClass("active");
+            $("#lilookups").addClass("active");
+
+            $(".datatable").DataTable({
+                "lengthMenu": [
+                    [6, 10, 25, 50, -1],
+                    [6, 10, 25, 50, 'All']
+                ],
+                "pageLength": 6
+            });
+
+            $('#ignismyModal').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
+        });
+    </script>
+
+}

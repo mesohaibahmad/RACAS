@@ -1,0 +1,167 @@
+﻿
+.dashboard-box-label {
+    width: 80px;
+    margin-left: -80px !important;
+    padding-top: 10px;
+    font-size: x-large;
+    font-weight: bold;
+    text-align: left;
+}
+
+.dashboard-box {
+    border: solid 1px black;
+    width: 200px;
+    height: 200px;
+    margin: 20px;
+    color: white;
+    font-weight: bold;
+}
+
+.dashboard-box-top-left {
+    background-color: cornflowerblue;
+}
+
+.dashboard-box-top-right {
+    background-color: seagreen;
+}
+
+.dashboard-box-bottom-left {
+    background-color: orange;
+}
+
+.dashboard-box-bottom-right {
+    background-color: darkred;
+}
+
+.dashboard-box-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50px;
+    border: solid 1px white;
+    background-color: white;
+    padding-top: 16px;
+    font-size: large;
+    font-weight: bold;
+    margin-top: 30px;
+    margin-left: 100px;
+    color: mediumvioletred;
+}
+
+.dashboard-box-summary-label {
+    margin-left: -300px;
+    color: gray;
+}
+
+.dashboard-box-summary-value {
+    color: mediumvioletred;
+    font-weight: bold;
+    font-size: large;
+}
+
+.jquery-filter {
+    width: 100%;
+    padding-top: 10px;
+}
+
+    .jquery-filter > div {
+        width: inherit;
+    }
+
+        .jquery-filter > div > label {
+            width: inherit;
+        }
+
+            .jquery-filter > div > label > input {
+                width: inherit;
+            }
+
+.jquery-export-btn button {
+    background-color: #AB1032 !important;
+    color: white !important;
+    /*   border-radius: 6px;*/
+    height: 40px;
+    margin-top: 6px;
+    width: 90px;
+}
+
+.transportationlist-table thead {
+    height: 50px;
+    background-color: #AB1032 !important;
+    color: white !important;
+}
+
+#transportationlisttbl_wrapper button {
+    padding: 5px !important;
+}
+
+.transportationlist-table tbody {
+    /*    height: 100px;
+        position: fixed;
+        overflow-y: scroll;
+        overflow-x: hidden;*/
+}
+
+.transportationlist-table {
+    width: 100% !important;
+    border: solid 1px gray;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    font-size: small;
+    cursor: pointer;
+}
+
+    .transportationlist-table td:nth-child(1) {
+        width: auto;
+    }
+
+    .transportationlist-table td:nth-child(2) {
+        width: 8%;
+    }
+
+    .transportationlist-table td:nth-child(3) {
+        width: 8%;
+    }
+
+    .transportationlist-table td:nth-child(4) {
+        width: 8%;
+    }
+
+    .transportationlist-table td:nth-child(5) {
+        width: 8%;
+    }
+
+    .transportationlist-table td:nth-child(6) {
+        width: 8%;
+    }
+
+    .transportationlist-table td:nth-child(7) {
+        width: 8%;
+    }
+
+    .transportationlist-table td:nth-child(8) {
+        width: 8%;
+    }
+
+    .transportationlist-table td:nth-child(9) {
+        width: 8%;
+    }
+
+.fa-chevron-down .fa-chevron-up {
+    padding-left: 30px;
+    padding-top: 3px;
+}
+
+#accordion {
+    height: 330px;
+}
+
+h5 {
+    font-weight: bold;
+}
+
+label {
+    padding-right: 25px;
+}
+
+.close{
+    opacity:1;
+}

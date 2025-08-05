@@ -1,0 +1,51 @@
+﻿
+.jquery-filter {
+    width: 100%;
+    padding-top: 10px;
+}
+
+    .jquery-filter > div {
+        width: inherit;
+    }
+
+        .jquery-filter > div > label {
+            width: inherit;
+        }
+
+            .jquery-filter > div > label > input {
+                width: inherit;
+            }
+
+button {
+    background-color: #AB1032 !important;
+    color: white !important;
+}
+
+.jquery-export-btn button {
+    background-color: white;
+    border-radius: 6px;
+    height: 40px;
+    margin-top: 6px;
+    width: 90px;
+    display: none;
+}
+
+.jquery-filter input {
+    width: 500px;
+}
+
+.dashboardlist-table thead {
+    height: 50px;
+    background-color: #AB1032;
+    color: white;
+}
+
+.dashboardlist-table {
+    width: 100% !important;
+    border: solid 1px gray;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    font-size: small;
+    cursor: pointer;
+}
+
+ 

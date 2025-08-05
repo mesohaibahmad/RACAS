@@ -1,0 +1,275 @@
+﻿@using RACAS.Models;
+@using RACAS.Model
+@using RACAS.Controllers
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Localization
+@using System.Globalization
+
+@inject IStringLocalizer<HomeController> Localizer
+@{
+    string currCul = "";
+    string curCulName = "English";
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+
+    if (requestCulture.RequestCulture.Culture.Name == "ar-SA")
+    {
+        curCulName = "Arabic";
+        currCul = "https://cdn.datatables.net/plug-ins/1.12.1/i18n/ar.json";
+    }
+
+    List<MenuViewModel> menuList = (List<MenuViewModel>)ViewData["UserRoleMenu"];
+    bool CanCreate = false, CanDelete = false, CanEdit = false, CanExport = false, CanEmail = false;
+    if (menuList?.Count > 0)
+    {
+        foreach (var m in menuList)
+        {
+            if (m.ModuleId == "liusers")
+            {
+                if (m.ActionName == "Create")
+                    CanCreate = true;
+                if (m.ActionName == "Edit")
+                    CanEdit = true;
+                if (m.ActionName == "Delete")
+                    CanDelete = true;
+                if (m.ActionName == "Export")
+                    CanExport = true;
+                if (m.ActionName == "Email")
+                    CanEmail = true;
+            }
+        }
+    }
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var paymentId = ViewBag.PaymentId;
+
+}
+
+
+<section class="content-header">
+    <h1>
+        @Localizer["Payment Request Detail"]
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> @Localizer["Home"]</a></li>
+        <li><a href="#">@Localizer["Payment Request Detail"]</a></li>
+    </ol>
+</section>
+
+<section class="content" id="appLog">
+    <div class="row">
+    <div class="col-md-3">
+        <!-- Payment Details Box -->
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">Payment Details</h3>
+            </div><!-- /.box-header -->
+            <div class="box-body">
+                <strong><i class="fa fa-file-text-o margin-r-5"></i> Contract Number: </strong>
+                <span class="text-muted">{{ PaymentDetails.ContractNumber }}</span>
+
+                <hr>
+
+                <strong><i class="fa fa-comment margin-r-5"></i> Comment</strong>
+                <p class="text-muted">{{ PaymentDetails.Comment }}</p>
+
+                <hr>
+
+                <strong><i class="fa fa-calendar margin-r-5"></i> Entry Date: </strong>
+                <span class="text-muted">{{ PaymentDetails.EntryDate }}</span>
+
+                <hr>
+
+                <strong>
+                    <i class="fa fa-calendar margin-r-5"></i> Cost Incure dDate: 
+                </strong>
+                <span class="text-muted">
+                    {{ PaymentDetails.CostIncuredDate
+                    }}
+                </span>
+
+                <hr>
+
+                <strong><i class="fa fa-money margin-r-5"></i> Amount: </strong>
+                <span class="text-muted">{{ PaymentDetails.Amount }}</span>
+
+                <hr>
+
+                <strong><i class="fa fa-file-invoice margin-r-5"></i> Invoice Number: </strong>
+                <span class="text-muted">{{ PaymentDetails.InvoiceNumber }}</span>
+
+                <hr>
+
+                <strong><i class="fa fa-building margin-r-5"></i> Company Name</strong>
+                <p class="text-muted">{{ PaymentDetails.CompanyName || 'N/A' }}</p>
+
+                <hr>
+
+                <strong><i class="fa fa-check-circle margin-r-5"></i> Submitted By</strong>
+                <p v-if="PaymentDetails.IsSubmitted" class="text-muted">
+                   {{ PaymentDetails.SubmittedByName }} on {{ PaymentDetails.SubmittedDate }}
+                </p>
+
+                <hr>
+
+                <strong><i class="fa fa-user margin-r-5"></i> Ordered By</strong>
+                <p v-if="PaymentDetails.IsOrdered" class="text-muted">
+                    {{ PaymentDetails.OrderedByName }} - {{ PaymentDetails.OrderedByDate }}
+                </p>
+
+                <hr>
+
+                <strong><i class="fa fa-check margin-r-5"></i> Control Check By</strong>
+                <p v-if="PaymentDetails.IsControlCheck" class="text-muted">
+                    {{ PaymentDetails.ControlCheckByName || 'N/A' }} - {{ PaymentDetails.ControlCheckDate }}
+                </p>
+
+                <hr>
+
+                <strong><i class="fa fa-thumbs-up margin-r-5"></i> Approved By</strong>
+                <p v-if="PaymentDetails.IsApproved" class="text-muted">
+                    {{ PaymentDetails.ApprovedByName || 'N/A' }} - {{ PaymentDetails.PaymentApprovalDate }}
+                </p>
+
+                <hr>
+
+               
+
+                <strong><i class="fa fa-flag margin-r-5"></i> Status</strong>
+                <span  class="text-muted">{{ PaymentDetails.RecordStatus }}</span>
+
+                <hr>
+
+                <strong><i class="fa fa-briefcase margin-r-5"></i> Branch</strong>
+                <p class="text-muted">{{ PaymentDetails.BranchName }}</p>
+            </div><!-- /.box-body -->
+        </div><!-- /.box -->
+    </div>
+   
+
+        <div class="col-md-9">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="#activity" data-toggle="tab">Activity</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div class="active tab-pane" id="activity" v-for="(item, index) in reversedLogList" :key="index">
+                        <!-- Post -->
+                        <div class="log">
+                            <div>
+                                <p>
+                                    <strong>Log Type:</strong> {{ item.LogType }}
+                                </p>
+                            </div>
+                            <div class="user-block">
+                                <img class="img-circle img-bordered-sm" src="../../dist/img/user1-128x128.png" alt="user image">
+                                <span class="username">
+                                    <a href="#">{{ item.UserName }}</a>
+                                    <a href="#" class="pull-right btn-box-tool"><i class="fa fa-times"></i></a>
+                                </span>
+                                <span class="description">{{ item.LogDateTime }}</span>
+                            </div><!-- /.user-block -->
+                           
+
+                            <p>
+                           
+                                {{ item.LogDescription }}
+                            </p>
+                        </div>
+                   
+                    <!-- /.post -->
+                      <!-- /.post -->
+                      <!--  <div class="input-group input-group-sm">
+
+                            <input class="form-control input-sm" type="text" placeholder="Type a comment">
+                            <div class="input-group-btn">
+                                <button type="submit" class="btn btn-default"><i class="fa fa-enter"></i></button>
+                            </div>
+
+                        </div> -->
+                    </div><!-- /.tab-pane -->
+                 
+                </div><!-- /.tab-content -->
+            </div><!-- /.nav-tabs-custom -->
+        </div><!-- /.col -->
+    </div><!-- /.row -->
+
+</section>
+
+   
+
+
+
+    @section scripts {
+    <script>
+
+        var objCommon = new Common();
+        var LanguageUrl = '@currCul';
+        $(function () {
+        })
+        $(document).ready(function () {
+
+            var app = new Vue({
+                el: '#appLog',
+                data: {
+                    PaymentId: @paymentId,
+              
+                    PaymentDetails: {},
+                LogstList: [],
+              
+            },
+                mounted() {
+                this.LoadDetails(null);
+     
+            },
+                computed: {
+                reversedLogList() {
+                    return this.LogstList.slice().reverse();
+                }
+            },
+
+                methods: {
+                  
+                    LoadDetails($event) {
+                        let dthis = this;
+
+                        var param = {
+                            PaymentId: this.PaymentId,
+                        };
+                      
+
+                        objCommon.AjaxCall("/payments/getLogDetails", $.param(param), "GET", true, function (d) {
+                    
+                             let arr =  d.paymentDetails ;
+                    
+                            dthis.PaymentDetails = arr[0];
+                            console.log(dthis.PaymentDetails);
+
+                            dthis.LogstList = d.logDetails;
+                    
+
+                         
+
+                        }, $event == null ? "" : $event.currentTarget);
+
+                    },
+
+                    
+           
+        },
+                  
+                  
+                  
+                });
+
+
+            setTimeout(function () {
+                $("#leftmenu li").removeClass("active");
+                $("#lipayments").addClass("active");
+
+            }, 200)
+
+        })
+    </script>
+
+}

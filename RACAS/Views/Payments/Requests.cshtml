@@ -1,0 +1,673 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+@using Microsoft.AspNetCore.Http
+@using RACAS.Models;
+@using RACAS.Model
+@using RACAS.Controllers
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Localization
+@using System.Globalization
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IStringLocalizer<HomeController> Localizer
+@{
+    string currCul = "";
+    string curCulName = "English";
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+
+    if (requestCulture.RequestCulture.Culture.Name == "ar-SA")
+    {
+        curCulName = "Arabic";
+        currCul = "https://cdn.datatables.net/plug-ins/1.12.1/i18n/ar.json";
+    }
+
+    List<MenuViewModel> menuList = (List<MenuViewModel>)ViewData["UserRoleMenu"];
+    bool CanCreate = false, CanDelete = false, CanEdit = false, CanExport = false, CanEmail = false,
+    CanOrder = false, CanSubmit = false, CanControlCheck = false, CanApproved = false, CanRead = false,
+    CanReject = false, CanApplyInvoiceNumber=false;
+    if (menuList?.Count > 0)
+    {
+        foreach (var m in menuList)
+        {
+            if (m.ModuleId == "lipayments")
+            {
+                if (m.ActionName == "Create")
+                    CanCreate = true;
+                if (m.ActionName == "Edit")
+                    CanEdit = true;
+                if (m.ActionName == "Delete")
+                    CanDelete = true;
+                if (m.ActionName == "Read")
+                    CanRead = true;
+                if (m.ActionName == "Export")
+                    CanExport = true;
+                if (m.ActionName == "Email")
+                    CanEmail = true;
+                if (m.ActionName == "Order")
+                    CanOrder = true;
+                if (m.ActionName == "Control Check")
+                    CanControlCheck = true;
+                if (m.ActionName == "Submit")
+                    CanSubmit = true;
+                if (m.ActionName == "Approve")
+                    CanApproved = true;
+                if(m.ActionName == "Reject")
+                    CanReject = true;
+                if (m.ActionName == "Apply Invoice Number")
+                    CanApplyInvoiceNumber = true;
+            }
+        }
+    }
+
+    int UserTypeId = 0;
+    try
+    {
+        UserTypeId = Convert.ToInt32(HttpContextAccessor.HttpContext.Session.GetString("UserTypeId"));
+        if (UserTypeId == 1)
+        {
+            CanCreate = true; CanDelete = true; CanEdit = true; CanExport = true; CanEmail = true; CanRead = true;
+            CanOrder = true; CanSubmit = true; CanControlCheck = true; CanApproved = true; CanReject = true; CanApplyInvoiceNumber=true;
+        }
+    }
+    catch (Exception ex)
+    {
+
+    }
+
+
+}
+
+@model RACAS.Model.PaymentModel
+
+<style>
+
+    a {
+        cursor: pointer !important
+    }
+
+    #tblpayment .user-block img {
+        width: 35px;
+        height: 30px;
+        float: left;
+    }
+
+    .flexfilter {
+        display: inline-flex
+    }
+</style>
+<section class="content-header">
+    <h1>
+        @Localizer["Payment Requests"]
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> @Localizer["Home"]</a></li>
+        <li><a href="#">@Localizer["Payment Requests"]</a></li>
+    </ol>
+</section>
+
+<section class="content" id="appPay">
+
+    <div class="box">
+        <div class="box-header">
+
+            <div class="box-tools">
+            </div>
+        </div>
+        <div class="box-body">
+            <div class="row">
+
+                <div class="col-md-3">
+                    <label>Status</label>
+                    <select class="form-control" name="RecordStatus" id="ddlStatus">
+                        <option value="">All</option>
+                        <option value="New">New</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Control Check Ok">Control Check Ok</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Invoice Number Applied">Invoice Number Applied</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Submitted By</label>
+                    <select class="form-control" name="SubmittedById" id="ddlSubmittedBy">
+                        <option value="0">All</option>
+                        @{
+                            if (Model.UsersList?.Count > 0)
+                            {
+                                for (int i = 0; i < Model.UsersList.Count; i++)
+                                {
+                                    var user = Model.UsersList[i];
+                                                                <option value="@user.Id">@user.FirstName @user.LastName</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Conrol Check By</label>
+                    <select class="form-control" name="ControlCheckById" id="ddlControlCheckBy">
+                        <option value="0">All</option>
+                        @{
+                            if (Model.UsersList?.Count > 0)
+                            {
+                                for (int i = 0; i < Model.UsersList.Count; i++)
+                                {
+                                    var user = Model.UsersList[i];
+                                                                <option value="@user.Id">@user.FirstName @user.LastName</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Approved By</label>
+                    <select class="form-control" name="ApprovedById" id="ddlApprovedBy">
+                        <option value="0">All</option>
+                        @{
+                            if (Model.UsersList?.Count > 0)
+                            {
+                                for (int i = 0; i < Model.UsersList.Count; i++)
+                                {
+                                    var user = Model.UsersList[i];
+                                                                <option value="@user.Id">@user.FirstName @user.LastName</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <label>Payment Type</label>
+                    <select class="form-control" name="PaymentType" id="ddlPaymentType">
+                        <option value="">All</option>
+                        <option value="Expense">Expense</option>
+                        <option value="Income">Income</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Partner</label>
+                    <select class="form-control" name="PartnerId" id="ddlPartner">
+                        <option value="0">All</option>
+                        @{
+                            if (Model.PartnerList?.Count > 0)
+                            {
+                                for (int i = 0; i < Model.PartnerList.Count; i++)
+                                {
+                                    var user = Model.PartnerList[i];
+                                                                <option value="@user.Id">@user.CompanyName</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Invoice Number</label>
+                    <input type="text" class="form-control" name="InvoiceNumber" id="txtInvoiceNumber" />
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-primary" style="margin-top:24px" v-on:click="LoadAllRequest($event)">Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="box">
+        <div class="box-header">
+
+            <div class="dataTables_length">
+                <div class="row">
+
+                    <div class="col-md-9 flexfilter">
+                        <div style="margin-top:-8px">
+                            <span style="font-size:11px">
+                                Show
+                            </span><br /><select class="form-control input-sm" id="txtPageSize"
+                                                 @@change="LoadAllRequest(null)" style="height:30px">
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                        <div style="margin-top:-8px;margin-left:10px">
+                            <span style="font-size:11px">
+                                Action
+                            </span><br />
+                            <select class="form-control input-sm" id="ddlAction" style="width:120px">
+                                <option value="">-- Action --</option>
+                                @{
+                                    if (CanOrder)
+                                    {
+                                                                    <option value="Order">Order</option>
+                                    }
+                                }
+                                @{
+                                    if (CanSubmit)
+                                    {
+                                                                    <option value="Submit">Submit</option>
+                                    }
+                                }
+                                @{
+                                    if (CanControlCheck)
+                                    {
+                                                                    <option value="ControlCheck">Control Check</option>
+                                    }
+                                }
+                                @{
+                                    if (CanApproved)
+                                    {
+                                                                    <option value="Approve">Approve</option>
+                                    }
+                                }
+                                @{
+                                    if (CanReject)
+                                    {
+                                                                    <option value="Reject">Reject</option>
+                                    }
+                                }
+                                @{
+                                    if (CanDelete)
+                                    {
+                                                                    <option value="Delete">Delete</option>
+                                    }
+                                }
+                                @{
+                                    if (CanApplyInvoiceNumber)
+                                    {
+                                                                    <option value="ApplyInvoiceNumber">Apply Invoice Number</option>
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                        <div style="margin-top:11px;margin-left:10px">
+                            <button type="button" class="btn-sm btn-primary" v-on:click="ActionClick($event)">Apply</button>
+                        </div>
+                    </div>
+                    <div class="col-md-3" style="display:flex;margin-top:10px;justify-content:end">
+
+                        <div class="input-group input-group-sm">
+
+                            <input type="text" id="search_File_Vault" onclick="this.select();" autocomplete="off" name="table_search" ng-model="SearchText" class="form-control pull-right" placeholder="Search">
+
+                            <div class="input-group-btn">
+                                <button type="submit" id="btnSearch" style="margin-top:-5px" class="btn btn-default" ng-click="SearchGetTableData(1);">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        @{
+                            if (CanCreate)
+                            {
+                                                            <a v-on:click="add()" style="margin-left:5px" class="btn btn-primary btnaddnew"><i class="fa fa-plus"></i> @Localizer["Add"] </a>
+                            }
+                        }
+
+                    </div>
+                </div>
+
+
+
+            </div>
+            <div class="box-tools">
+            </div>
+        </div>
+        <div class="box-body" style=" padding-left: 5px; padding-right: 5px; padding-bottom: 20px">
+
+            <div class="row">
+                <div class="col-md-12">
+                    <table id="tblpayment" class="table table-bordered table-striped datatable table-responsive">
+                        <thead>
+                            <tr>
+                                <th>
+                                    No#
+                                    
+                                    </th>
+                                <th>
+                                    <input type="checkbox" id="chkAll" v-model="AllCheck" @@change="OnChangeAllCheck(AllCheck)" />
+                                </th>
+                                <th>
+                                    @Localizer["Contract Number"]
+
+                                </th>
+                                <th>@Localizer["Invoice Number"]</th>
+                                <th>@Localizer["Partner"]</th>
+                                <th>@Localizer["Branch"]</th>
+                                <th>@Localizer["CausedBy"]</th>
+                                <th>@Localizer["Entry Date"]</th>
+                                <th>@Localizer["CostIncured Date"]</th>
+
+                                <th>@Localizer["Status"]</th>
+                                <th>@Localizer["Submitted"]</th>
+                                <th>@Localizer["Control Check"]</th>
+                                <th>@Localizer["Payment Approval"]</th>
+                                <th>@Localizer["Amount"]</th>
+                                <th style="width:20px">@Localizer["Edit"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(item, index) in RequestList">
+                                <td>
+                                    {{item.Id}}
+                                </td>
+                                <td>
+                                    <input type="checkbox" v-model="item.IsChecked" />
+                                </td>
+                                <td>
+                                    @{
+                                        if (CanEdit)
+                                        {
+                                                                        <a v-on:click="edit(item)">
+                                                                            {{item.ContractNumber}}
+                                                                        </a>
+                                        }
+                                        else
+                                        {
+                                                                        <span>{{item.ContractNumber}}</span>
+                                        }
+                                    }
+
+                                </td>
+                                <td> {{item.InvoiceNumber}}</td>
+                                <td>{{item.CompanyName}} </td>
+                                <td>{{item.BranchName}} {{item.BranchCode}} </td>
+                                <td> {{item.Causes}}</td>
+                                <td>{{item.EntryDate}} </td>
+                                <td>{{item.CostIncuredDate}} </td>
+
+                                <td>
+                                  <label class="label label-primary">{{item.RecordStatus}}</label>
+                                </td>
+                                <td>
+                                    <div v-if="item.IsSubmitted" class="user-block">
+                                        <img class="img-circle" src="../dist/img/tick_icon.png">
+                                        <span class="username">{{item.SubmittedByName}}</span>
+                                        <span class="description">{{item.SubmittedDate}}</span>
+                                    </div>
+                                    <div v-if="!item.IsSubmitted" class="user-block">
+                                        <img class="img-circle" style="width:30px" src="../dist/img/cross_icon.png">
+                                    </div>
+                                </td>
+                                <td>
+                                    <div v-if="item.IsControlCheck" class="user-block">
+                                        <img class="img-circle" src="../dist/img/tick_icon.png">
+                                        <span class="username">{{item.ControlCheckByName}}</span>
+                                        <span class="description">{{item.ControlCheckDate}}</span>
+                                    </div>
+                                    <div v-if="!item.IsControlCheck" class="user-block">
+                                        <img class="img-circle" style="width:30px" src="../dist/img/cross_icon.png">
+                                    </div>
+                                </td>
+                                <td>
+                                    <div v-if="item.IsApproved" class="user-block">
+                                        <img class="img-circle" src="../dist/img/tick_icon.png">
+                                        <span class="username">{{item.ApprovedByName}}</span>
+                                        <span class="description">{{item.PaymentApprovalDate}}</span>
+                                    </div>
+                                    <div v-if="!item.IsApproved" class="user-block">
+                                        <img class="img-circle" style="width:30px" src="../dist/img/cross_icon.png">
+                                    </div>
+                                </td>
+
+                                <td :style="[item.PaymentType=='Expense' ? {'background': 'pink'} : {'background': 'lightgreen'}]">{{formatCurrency(item.Amount)}} </td>
+                                <td style="width:30px">
+                                    <a :href="`/Payments/Detail?PaymentId=${item.Id}`">
+                                        @Localizer["View Detail"]
+                                    </a>
+                                </td>
+
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+
+                                <th colspan="12" style="text-align:right">Total Income</th>
+                                <th>{{formatCurrency(TotalIncome)}}</th>
+                                <th style="width:20px"></th>
+                                <th style="width:20px"></th>
+                            </tr>
+                            <tr>
+
+                                <th colspan="12" style="text-align:right">Total Expense</th>
+                                <th>{{formatCurrency(TotalExpense)}}</th>
+                                <th style="width:20px"></th>
+                                <th style="width:20px"></th>
+                            </tr>
+                        </tfoot>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="paymentModal" class="modal fade">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content tx-size-sm">
+                <div class="modal-header pd-x-20">
+                    <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" style="float:left">{{ mainLedger.AddEdit }}</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pd-20">
+                    <form id="paymentForm">
+                        <div class="row">
+                           
+                            <div class="col-md-6">
+                                <label>Branch Name</label>
+                                <select class="form-control validate[required]" v-model="mainLedger.BranchId">
+                                    @foreach (var branch in Model.BranchList)
+                                    {
+                                        <option :value="@branch.Id">@branch.BranchName </option>
+                                    }
+                                </select>
+                            </div>
+
+                             <div class="col-md-6">
+                                <label>Partner</label>
+                                <select class="form-control validate[required]" v-model="mainLedger.PartnerId">
+                                    <option v-for="partner in filteredPartners" :key="partner.idNumber" :value="partner.idNumber">
+                                        {{ partner.companyName }}
+
+
+                                    </option>
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="row" style="display:none">
+                           
+                            <div class="col-md-6">
+                                <label>Invoice Number</label>
+                                <input class="form-control validate[required]" type="text" v-model="mainLedger.InvoiceNumber" />
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="hidden" v-model="mainLedger.Id" />
+                                <label>Contract Number</label>
+                                <input class="form-control validate[required]" type="text" v-model="mainLedger.ContractNumber" v-on:input="validateLength" />
+                                <p v-if="inputError">{{ inputError }}</p>
+                            </div>
+                          
+                            <div class="col-md-6">
+                                <label>Cost Incurred Date</label>
+                                <input class="form-control validate[required]" type="date" :max="currDate" v-model="mainLedger.CostIncuredDate" />
+                            </div>
+
+                        </div>
+              
+                <div class="row">
+                            <div class="col-md-12">
+                                <label>Caused By </label>
+                                <select class="form-control validate[required]" v-model="mainLedger.CausedById">
+                                    @{
+                                        if (Model.CausedByList?.Count > 0)
+                                        {
+                                            for (int i = 0; i < Model.CausedByList.Count; i++)
+                                            {
+                                                var cause = Model.CausedByList[i];
+                                                                    <option value="@cause.Id">@cause.Causes</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Description</label>
+                                <select class="form-control validate[required]" v-model="mainLedger.DescriptionId">
+                                    @{
+                                        if (Model.DescriptionList?.Count > 0)
+                                        {
+                                            for (int i = 0; i < Model.DescriptionList.Count; i++)
+                                            {
+                                                var desc = Model.DescriptionList[i];
+                                                <option value="@desc.Id">@desc.Description</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+
+
+
+                        </div>
+                        <div class="row">
+
+
+                            <div class="col-md-6">
+                                <label>Payment Type</label>
+                                <select class="form-control validate[required]" v-model="mainLedger.PaymentType">
+                                    <option value="Expense">Expense</option>
+                                    <option value="Income">Income</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label>Amount</label>
+
+                                <div class="input-group">
+                                    <span class="input-group-addon" v-if="mainLedger.PaymentType=='Expense'">-</span>
+                                    <span class="input-group-addon" v-if="mainLedger.PaymentType!='Expense'">+</span>
+                                    <input class="form-control validate[required]" type="number" v-model="mainLedger.Amount" />
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row">
+
+                            <div class="col-md-12">
+                                <label>Comment</label>
+                                <input class="form-control validate[required]" type="text" v-model="mainLedger.Comment" />
+                            </div>
+
+                        </div>
+                        <div class="row">
+
+                            <div class="col-md-12">
+                                @{
+                              
+                                    if (CanControlCheck)
+                                    {
+                                        <span><input type="checkbox" v-model="mainLedger.IsControlCheck" />
+                                            Control Check
+                                        </span>
+                                    }
+                                    if (CanApproved)
+                                    {
+                                        <span><input type="checkbox" v-model="mainLedger.IsApproved" />
+                                            Approved for payment
+                                        </span>
+                                    }
+                                    if (CanReject)
+                                    {
+                                       <span>  <input type="checkbox" v-model="mainLedger.IsRejected" />
+                                            Reject
+                                        </span>
+                                    }
+                                }
+
+                              
+                               
+                                
+                               
+                            </div>
+                        </div>
+                       
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <span>
+                        <button type="button" class="btn btn-primary" v-on:click="insert($event,'Save')">@Localizer["Save"]</button>
+                    </span>
+                    <span> <button type="button" class="btn btn-primary" v-on:click="insert($event,'Submmit')">@Localizer["Save & Submit"]</button></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="commonModel" class="modal fade">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content tx-size-sm">
+                <div class="modal-header pd-x-20">
+                    <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" style="float:left"></h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pd-20">
+                    <form id="eventForm">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input type="hidden" class="form-control" v-model="common.EventId" />
+                                <input type="text" class="form-control validate[required]" disabled="disabled" v-model="common.EventType" />
+                            </div>
+                            <div class="col-md-4">
+                                <input type="date" class="form-control validate[required]" v-model="common.EventDateTime" />
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control validate[required]" v-model="common.EventBy" />
+                            </div>
+                            <div class="col-md-12" style="margin-top:10px" v-if="common.EventType=='ApplyInvoiceNumber'">
+                                <input type="text" class="form-control validate[required]" v-model="common.InvoiceNumber" />
+                            </div>
+                            <div class="col-md-12" style="margin-top:10px">
+                                <textarea class="form-control validate[required]" rows="4" v-model="common.EventDescription">
+                      </textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" v-on:click="InsertEvent($event,IdsSelected)">@Localizer["Save"]</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    @section scripts {
+        <script src="https://cdn.jsdelivr.net/npm/dayjs/dayjs.min.js"></script>
+        <script>
+            var objCommon = new Common();
+            var LanguageUrl = '@currCul';
+            var BranchList = @Html.Raw(Json.Serialize(Model.BranchList));
+            var PartnerList = @Html.Raw(Json.Serialize(Model.PartnerList));
+            var UserList = @Html.Raw(Json.Serialize(Model.UsersList));
+            var UserBranchList = @Html.Raw(Json.Serialize(Model.UserBranchList));
+            var UserName = '@ViewBag.UserName';
+        </script>
+        <script src="~/js/paymentcontroller.js"></script>
+    }

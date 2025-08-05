@@ -1,0 +1,25 @@
+﻿.navbar-nav > li {
+    float:right !important
+}
+.navbar-nav {
+    float: left !important
+}
+.main-header .sidebar-toggle {
+    float: right !important
+}
+.main-header .logo {
+    float: right !important
+}
+
+.main-sidebar, .left-side{
+    right:0 !important;
+    left:unset
+}
+.content-wrapper, .right-side, .main-footer {
+    margin-right: 230px !important;
+}
+
+.main-header .navbar {
+    margin-right: 230px !important;
+}
+

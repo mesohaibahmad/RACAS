@@ -1,0 +1,695 @@
+﻿@using Microsoft.AspNetCore.Http
+@using Nancy.Json
+@using RACAS.Models;
+@using RACAS.Model
+@using RACAS.Controllers
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Localization
+@using System.Globalization
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IStringLocalizer<HomeController> Localizer
+@{
+    var serializer = new JavaScriptSerializer();
+    string currCul = "";
+    string curCulName = "English";
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+
+    if (requestCulture.RequestCulture.Culture.Name == "ar-SA")
+    {
+        curCulName = "Arabic";
+        currCul = "https://cdn.datatables.net/plug-ins/1.12.1/i18n/ar.json";
+    }
+
+    List<MenuViewModel> menuList = (List<MenuViewModel>)ViewData["UserRoleMenu"];
+    bool CanCreate = false, CanDelete = false, CanEdit = false, CanExport = false, CanEmail = false, CanRead = false;
+    if (menuList?.Count > 0)
+    {
+        foreach (var m in menuList)
+        {
+            if (m.ModuleId == "lipartners")
+            {
+                if (m.ActionName == "Create")
+                    CanCreate = true;
+                if (m.ActionName == "Edit")
+                    CanEdit = true;
+                if (m.ActionName == "Delete")
+                    CanDelete = true;
+                if (m.ActionName == "Export")
+                    CanExport = true;
+                if (m.ActionName == "Email")
+                    CanEmail = true;
+                if (m.ActionName == "Read")
+                    CanRead = true;
+            }
+        }
+    }
+
+    int UserTypeId = 0;
+    try
+    {
+        UserTypeId = Convert.ToInt32(HttpContextAccessor.HttpContext.Session.GetString("UserTypeId"));
+        if (UserTypeId == 1)
+        {
+            CanCreate = true; CanDelete = true; CanEdit = true; CanExport = true; CanEmail = true; CanRead = true;
+        }
+    }
+    catch (Exception ex)
+    {
+
+    }
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+@model List<RACAS.Models.Partners>
+@{
+    List<UserTypes> listLookup = (List<UserTypes>)ViewData["LookupList"];
+}
+<style>
+
+    a {
+        cursor: pointer !important
+    }
+
+    fieldset {
+        padding: 0px 10px 20px;
+        border: 1px solid lightgrey;
+    }
+
+    legend {
+        display: block;
+        width: 100%;
+        padding: 0;
+        margin-bottom: 3px;
+        font-size: 21px;
+        line-height: inherit;
+        color: #333;
+        border: 0;
+        border-bottom: 1px solid #e5e5e5;
+    }
+</style>
+<section class="content-header">
+    <h1>
+        @Localizer["Partners"]
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> @Localizer["Home"]</a></li>
+        <li><a href="#">@Localizer["Partners"]</a></li>
+    </ol>
+</section>
+
+<section class="content" id="apporg">
+
+    <div class="col-md-12" style="min-height:425px">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">@Localizer["Partners"]</h3> 
+                @{
+                    if(CanCreate)
+                    {
+                            <button type="button" class="btn btn-primary" v-on:click="add()">@Localizer["AddPartner"] </button>
+                    }
+                }
+                
+            </div>
+            <div class="box-body" style="padding-left: 5px; padding-right: 5px; padding-bottom: 20px">
+                <div class="row" style="margin-left:0px; margin-right:0px">
+                    <div class="col-md-12">
+                        <table id="partnersData" class="table table-bordered table-striped datatable">
+                            <thead>
+                                <tr>
+                                    <th># @Localizer["Number"]</th>
+                                    <th>@Localizer["VATId"]</th>
+                                    <th>@Localizer["FullAddress"]</th>
+                                    <th>@Localizer["ContactPerson1"]</th>
+                                    <th>@Localizer["ContactPerson2"]</th>
+                                    <th>@Localizer["Insurance"]</th>
+                                    <th>@Localizer["Contract Date"]</th>
+                                    <th>@Localizer["IsTaxablePerson"]</th>
+                                    <th>@Localizer["Contract Signed"]</th>
+                                    <th>@Localizer["Branches"]</th>
+                                    <th>@Localizer["Delete"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    if (Model.Count > 0 && CanRead)
+                                    {
+                                        int count = 0;
+                                        for (int i = 0; i < Model.Count; i++)
+                                        {
+                                            var r = Model[i];
+                                                        <tr>
+                                                            <td>@(count + 1)</td>
+                                                            <td>
+                                                                <div class="user-block">
+                                                                    <img class="img-circle" src="~/dist/img/default-50x50.gif" alt="user image">
+                                                            <span class="username">
+                                                                @{
+                                                                if (CanEdit)
+                                                                {
+                                                                            <a v-on:click="edit(@(serializer.Serialize(r)))">@Html.Raw(r.CompanyName.Replace("'", "\\'"))</a>
+                                                                }
+                                                                else
+                                                                {
+                                                                            @Html.Raw(r.CompanyName.Replace("'", "\\'"))
+                                                                }
+                                                                }
+                                                            
+                                                            
+                                                            </span>
+                                                                    <span class="description">@r.Vatid | @r.IdNumber | @r.PostCode | @r.TownCity, @Html.Raw(r.Country.Replace("'", "\\'"))</span>
+                                                                </div>
+                                                            </td>
+
+                                                            <td>@Html.Raw(r.FullAddress.Replace("'", "\\'"))</td>
+                                                            <td>
+                                                                <div class="user-block">
+                                                                    <img class="img-circle" src="../dist/img/user1-128x128.png" alt="user image">
+                                                                    <span class="username">@Html.Raw(r.ContactPerson1.Replace("'", "\\'"))</span>
+                                                                    <span class="description">@r.ContactEmail1 | @r.ContactPhone1</span>
+                                                                </div>
+
+                                                            </td>
+                                                            <td>
+                                                                <div class="user-block">
+                                                                    <img class="img-circle" src="../dist/img/user1-128x128.png" alt="user image">
+                                                                    <span class="username">@Html.Raw(r.ContactPerson2.Replace("'", "\\'"))</span>
+                                                                    <span class="description">@r.ContactEmail2 | @r.ContactPhone2</span>
+                                                                </div>
+
+                                                            </td>
+                                                            <td>
+
+                                                                <div class="user-block">
+                                                                    <img class="img-circle" src="~/dist/img/default-50x50.gif" alt="user image">
+                                                                    <span class="username">@r.InsuranceCompany</span>
+                                                            <span class="description">@r.InsurancePolicyNumber | @r.InsurancePolicyValidUntil</span>
+                                                                </div>
+                                                            </td>
+                                                            <td>@r.ContractDate</td>
+                                                            <td>@r.IsTaxablePerson</td>
+                                                            <td>@r.ContractSigned</td>
+                                                            <td style="width:30px">
+                                                                <a v-on:click="branches('@r.Id')">
+                                                                    @Localizer["Branches"]
+                                                                </a>
+                                                            </td>
+                                                          
+                                                    @{
+                                                    if (CanDelete)
+                                                    {
+                                                                <td style="width:30px">
+                                                                    <a v-on:click="Del('@r.Id')">@Localizer["Delete"]</a>
+                                                                </td>
+                                                    }
+                                                    }
+                                                        </tr>
+                                            count++;
+                                        }
+                                    }
+                                }
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="partnerModal" class="modal fade">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content tx-size-sm">
+                <div class="modal-header pd-x-20">
+                    <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" style="float:left">Add Partner</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pd-20">
+                    <form id="partnerform">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <input type="hidden" v-model="partner.Id" />
+                                <label>@Localizer["VATId"]</label>
+                                <input type="text" class="form-control validate[required]" v-model="partner.VATId" />
+                            </div>
+                            <div class="col-md-6">
+                                <label>@Localizer["IdNumber"]</label>
+                                <input type="number" class="form-control validate[required]" v-model="partner.IdNumber" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>@Localizer["CompanyName"]</label>
+                                <input type="text" class="form-control validate[required]" v-model="partner.CompanyName" />
+                            </div>
+                            <div class="col-md-6">
+                                <label>@Localizer["PostCode"]</label>
+                                <input type="text" class="form-control validate[required]" v-model="partner.PostCode" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>@Localizer["TownCity"]</label>
+                                <input type="text" class="form-control validate[required]" v-model="partner.TownCity" />
+                            </div>
+                            <div class="col-md-6">
+                                <label>@Localizer["Country"]</label>
+                                <input type="text" class="form-control validate[required]" v-model="partner.Country" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>@Localizer["FullAddress"]</label>
+                                <input type="text" class="form-control validate[required]" v-model="partner.FullAddress" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <fieldset>
+                                    <legend class="w-auto">Person 1 Information</legend>
+                                    <label>@Localizer["ContactPerson1"]</label>
+                                    <input type="text" class="form-control validate[required]" v-model="partner.ContactPerson1" />
+
+                                    <label>@Localizer["ContactEmail1"]</label>
+                                    <input type="email" class="form-control validate[required,custom[email]]" v-model="partner.ContactEmail1" />
+
+                                    <label>@Localizer["ContactPhone1"]</label>
+                                    <input type="tel" class="form-control validate[required]" v-model="partner.ContactPhone1" />
+                                </fieldset>
+                            </div>
+                            <div class="col-md-6">
+                                <fieldset>
+                                    <legend>Person 2 Information</legend>
+                                    <label>@Localizer["ContactPerson2"]</label>
+                                    <input type="text" class="form-control" v-model="partner.ContactPerson2" />
+
+                                    <label>@Localizer["ContactEmail2"]</label>
+                                    <input type="email" class="form-control" v-model="partner.ContactEmail2" />
+
+                                    <label>@Localizer["ContactPhone2"]</label>
+                                    <input type="tel" class="form-control" v-model="partner.ContactPhone2" />
+                                </fieldset>
+                            </div>
+                        </div>
+
+                        <fieldset class="mb-4">
+                            <legend>Insurance Information</legend>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label>@Localizer["InsuranceCompany"]</label>
+                                    <input type="text" class="form-control" v-model="partner.InsuranceCompany" :class="{'validate[required]': partner.InsuranceContract}" :disabled="!partner.InsuranceContract" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label>@Localizer["InsurancePolicyNumber"]</label>
+                                    <input type="number" class="form-control" v-model="partner.InsurancePolicyNumber" :class="{'validate[required]': partner.InsuranceContract}" :disabled="!partner.InsuranceContract" />
+                                </div>
+                                <div class="col-md-4">
+                                    <label>@Localizer["InsurancePolicyValidUntil"]</label>
+                                    <input type="date" class="form-control" v-model="partner.InsurancePolicyValidUntil" :class="{'validate[required]': partner.InsuranceContract}" :disabled="!partner.InsuranceContract" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label>@Localizer["InsuranceContract"]</label>
+                                    <input class="form-check-input" type="checkbox" v-model="partner.InsuranceContract" />
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <div class="row">
+                           
+
+                            <div class="col-md-3">
+                                <label>@Localizer["IsTaxablePerson"]</label>
+                                <input class="form-check-input" type="checkbox" v-model="partner.IsTaxablePerson" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label>@Localizer["ContractSigned"]</label>
+                                <input class="form-check-input" type="checkbox" v-model="partner.ContractSigned" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label>@Localizer["ContractDate"]</label>
+                                <input type="date" class="form-control" v-model="partner.ContractDate" :class="{'validate[required]': partner.ContractSigned}" :disabled="!partner.ContractSigned" :max="maxDate" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    @{
+                        if (CanCreate)
+                        {
+                                <button type="button" class="btn btn-primary" v-on:click="insert($event)">@Localizer["Save"]</button>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <div id="partnerBranchModal" class="modal fade">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content tx-size-sm">
+                <div class="modal-header pd-x-20">
+                    <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" style="float:left">Assigned/UnAssign Branches</h6>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pd-20">
+                  <div class="row">
+                    <div class="col-xs-5">
+                     <label>Branches need to be Assign</label>
+                            <select class="form-control" id="ddlBranchUnAssigned" multiple style="height:300px">
+                          <option v-for="branch in BranchList" :key="branch.id" :value="branch.id">{{ branch.branchName }}</option>
+                            </select>
+                    </div>
+                     <div class="col-xs-1" style="padding-top:8%">
+                            <button type="button" class="btn-sm btn-default" v-on:click="AssignBranches($event)" ><i class="fa fa-arrow-right"></i></button><br />
+                            <br />
+                            <button type="button" class="btn-sm btn-default" v-on:click="UnAssignBranches($event)"><i class="fa fa-arrow-left"></i></button>
+                    </div>
+                     <div class="col-xs-6">
+                       <label>Assigned Branches to Partner</label>
+                            <select class="form-control" id="ddlBranchAssigned" multiple style="height:300px">
+                             <option v-for="branch in UserBranchList" :key="branch.branchId" :value="branch.branchId">{{ branch.branchName }}</option>
+                            </select>
+                    </div>
+                    </div>
+
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+
+
+</section>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/dayjs/dayjs.min.js"></script>
+    <script>
+
+        var objCommon = new Common();
+        var LanguageUrl = '@currCul';
+        $(document).ready(function () {
+            var app = new Vue({
+                el: '#apporg',
+                data: {
+                    partner: {
+                        Id: 0,
+                        VATId: '',
+                        IdNumber: '',
+                        CompanyName: '',
+                        PostCode: '',
+                        TownCity: '',
+                        Country: '',
+                        FullAddress: '',
+                        ContactPerson1: '',
+                        ContactEmail1: '',
+                        ContactPhone1: '',
+                        ContactPerson2: '',
+                        ContactEmail2: '',
+                        ContactPhone2: '',
+                        InsuranceCompany: '',
+                        InsurancePolicyNumber: '',
+                        ContractDate: '',
+                        InsurancePolicyValidUntil: '',
+                        IsTaxablePerson: false,
+                        ContractSigned: true,
+                        RecordStatus: '',
+                        InsuranceContract:false
+                    },
+                    BranchList:[],
+                    UserBranchList:[],
+                    PartnerId:0,
+                    maxDate: '',
+                    insuranceFieldsRequired: false,
+                    contractDateRequired: false,
+                },
+                created() {
+                    // Set the maxDate to today's date
+                    this.maxDate = new Date().toISOString().split('T')[0];
+                },
+                methods: {
+                    insert($event) {
+
+                        
+                              if (!objCommon.Validate("#partnerform"))
+                                return;
+
+                        this.partner.Id = Number(this.partner.Id);
+                        this.partner.IdNumber = Number(this.partner.IdNumber);
+                        this.partner.InsurancePolicyNumber = Number(this.partner.InsurancePolicyNumber);
+                        if (!this.partner.InsuranceContract){
+                            this.partner.InsurancePolicyValidUntil = null;
+                        }
+                        if (!this.partner.InsurancePolicyValidUntil=="") {
+                            this.partner.InsurancePolicyValidUntil = null;
+                        }
+                        var param = { ...this.partner };
+
+                        console.log(param);
+
+                        objCommon.AjaxCall("/partner/insertPartner", JSON.stringify(param), "POST", true, function (d) {
+
+                            if(d=="success"){
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: "Data has been saved successfully!",
+                                    icon: "success"
+                                });
+                                 $("#partnerModel").modal("hide");
+                            window.location.reload();
+                            }
+                            else
+                            {
+                               
+                                objCommon.ShowMessage(d, "error");
+                            }
+                           
+
+                        }, $event.currentTarget)
+                    },
+                   
+
+                    edit(partner) {
+                         partner = this.toCamelCase(partner);
+                        console.log(partner)
+                        partner.VATId = partner.Vatid;
+                        const datetimeStr = partner.ContractDate; // e.g., "2024-09-29T00:00:00.0000000+05:00"
+                        const datetimeStr2 = partner.InsurancePolicyValidUntil;
+                        // Parse and format using day.js
+                        const formattedDate = dayjs(datetimeStr).format('YYYY-MM-DD');
+                        const formattedDate2 = dayjs(datetimeStr2).format('YYYY-MM-DD');
+
+                        // Assign to partner.ContractDate
+                        partner.ContractDate = formattedDate;
+                        partner.InsurancePolicyValidUntil = formattedDate2;
+                        this.partner = { ...partner }; // Clone the partner data
+
+                        $("#partnerModal").modal("show");
+                    },
+                    branches(id){
+                          var dthis=this;
+                           dthis.BranchList=[];
+                                dthis.UserBranchList=[];
+
+                      
+                        this.PartnerId=Number(id);
+                        var param={
+                            PartnerId:Number(id)
+                        }
+
+                         objCommon.AjaxCall("/partner/GetPartnerBranches", $.param(param), "GET", true, function (d) {
+                             console.log(d.branchList);
+                              console.log(d);
+                            if(d.branchList!=null){
+                                dthis.BranchList=d.branchList;
+                                dthis.UserBranchList=d.userBranchList;
+                                 $("#partnerBranchModal").modal("show");
+                            }
+                            else
+                            {
+                                objCommon.ShowMessage(d, "error");
+                            }
+                        });
+
+                    },
+                      AssignBranches($event) {
+
+                        var dthis = this;
+
+                        if (Number(dthis.PartnerId) == 0) {
+                            objCommon.ShowMessage("Please select user type first.", "error");
+                            return;
+                        }
+                        var _branchIds=$("#ddlBranchUnAssigned").val();
+                        if (_branchIds.length==0){
+                            objCommon.ShowMessage("Please select branch first.", "error");
+                            return;
+                        }
+                        var ObjectList = [];
+                        _branchIds.forEach(function(v){
+                            console.log(v);
+                            ObjectList.push({
+                                UserId: Number(dthis.PartnerId),
+                                BranchId: Number(v),
+                                Id:0
+                            });
+                        })
+                        console.log(ObjectList);
+                        objCommon.AjaxCall("/partner/AssignBranches", JSON.stringify(ObjectList), "POST", true, function (response) {
+                            dthis.branches(dthis.PartnerId);
+
+                            Swal.fire({
+                                title: "Success!",
+                                text: "Data has been saved successfully!",
+                                icon: "success"
+                            });
+
+                        }, $event.currentTarget);
+
+                    },
+                    UnAssignBranches($event) {
+                        var dthis=this;
+                        if (Number(dthis.PartnerId) == 0) {
+                            objCommon.ShowMessage("Please select user type first.", "error");
+                            return;
+                        }
+                        var _branchIds = $("#ddlBranchAssigned").val();
+                      
+                        if (_branchIds.length == 0) {
+                            objCommon.ShowMessage("Please select branch first.", "error");
+                            return;
+                        }
+                        var ObjectList = [];
+                        _branchIds.forEach(function (v) {
+                            ObjectList.push({
+                                UserId: Number(dthis.PartnerId),
+                                BranchId: Number(v)
+                            });
+                        })
+
+                        objCommon.AjaxCall("/partner/UnAssignBranches", JSON.stringify(ObjectList), "POST", true, function (response) {
+                             dthis.branches(dthis.PartnerId);
+                            Swal.fire({
+                                title: "Success!",
+                                text: "Data has been saved successfully!",
+                                icon: "success"
+                            });
+                        }, $event.currentTarget);
+
+                    },
+                    toCamelCase(obj) {
+                        const newObj = {};
+                        for (const key in obj) {
+                            if (obj.hasOwnProperty(key)) {
+                                // Capitalize only the first letter of the key
+                                const newKey = key.charAt(0).toUpperCase() + key.slice(1);
+                                newObj[newKey] = obj[key];
+                            }
+                        }
+                        return newObj;
+                    },
+                    add() {
+                        this.partner = {
+                            Id: '0',
+                            VATId: '',
+                            IdNumber: '',
+                            CompanyName: '',
+                            PostCode: '',
+                            TownCity: '',
+                            Country: '',
+                            FullAddress: '',
+                            ContactPerson1: '',
+                            ContactEmail1: '',
+                            ContactPhone1: '',
+                            ContactPerson2: '',
+                            ContactEmail2: '',
+                            ContactPhone2: '',
+                            InsuranceCompany: '',
+                            InsurancePolicyNumber: '',
+                            ContractDate: '',
+                            IsTaxablePerson: false,
+                            ContractSigned: true,
+                            RecordStatus: '',
+                        };
+                        $("#partnerModal").modal("show");
+                    },
+                    Del(id) {
+                        Swal.fire({
+                            title: "Are you sure?",
+                            text: "You won't be able to revert this!",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Yes, delete it!"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+
+                                var param = {
+                                    Id: Number(id)
+                                }
+                                objCommon.AjaxCall("/partner/delete", JSON.stringify(param), "POST", true, function (d) {
+                                    if (d == "success") {
+                                        Swal.fire({
+                                            title: "Deleted!",
+                                            text: "Record has been deleted.",
+                                            icon: "success"
+                                        });
+                                        window.location.reload();
+                                    }
+                                    else {
+                                        objCommon.ShowMessage(d, "error");
+                                    }
+                                });
+
+                            }
+                        });
+                       
+
+                    },
+                   
+
+
+                },
+
+            });
+
+            $("#leftmenu li").removeClass("active");
+            $("#lipartners").addClass("active");
+
+            $(".datatable").DataTable({
+                "lengthMenu": [
+                    [6, 10, 25, 50, -1],
+                    [6, 10, 25, 50, 'All']
+                ],
+                "pageLength": 6,
+                "language": {
+                    "url": LanguageUrl
+                }
+            });
+
+            $('#ignismyModal').on('hidden.bs.modal', function () {
+                window.location.reload();
+            });
+        });
+    </script>
+
+
+}

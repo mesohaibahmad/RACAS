@@ -1,0 +1,164 @@
+﻿
+#header_section {
+    font-weight: bold;
+    font-size: large;
+    height: 100px;
+    display:inline;
+}
+
+#detail_section {
+    margin-bottom: 1vw;
+    margin-top: 10px;
+    font-size: 15px;
+    display: inline;
+}
+
+
+#header_section label {
+    font-weight: bold;
+    font-size: large;
+}
+
+#detail_section label {
+    font-weight: 100;
+    margin-bottom: 0px;
+}
+
+
+#header_section .row div:nth-child(1), #detail_section .row div:nth-child(1) {
+    width: 220px;
+}
+
+#detail_section .row div:nth-child(2) {
+    margin-bottom: 5px;
+}
+
+button {
+    background-color: #AB1032 !important;
+    color: white !important;
+}
+
+.item-remark-section {
+    display: none;
+}
+
+    .item-remark-section label {
+        margin-right: 10px;
+    }
+
+#uploaded_files {
+    height: 7.5vw;
+    overflow-y: auto;
+}
+
+.uploaded_file {
+    border: 1px solid black;
+    height: 40px;
+    padding-top: 10px;
+    margin-top: 10px;
+    font-size: small;
+    margin-left: 5px;
+    border-radius: 5px;
+    border-color: gray;
+}
+
+    .uploaded_file div {
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .uploaded_file .uploaded_file_text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .uploaded_file img {
+        height: 20px;
+        cursor: pointer;
+    }
+
+    .uploaded_file i {
+        font-size: x-large;
+        padding-left: 10px;
+        cursor: pointer;
+    }
+
+.edit-link {
+    font-weight: bold;
+    font-size: x-small;
+    color: blue;
+    cursor: pointer;
+}
+
+#edit-log {
+    width: 100%;
+}
+
+    #edit-log tr th {
+        height: 50px;
+        background-color: #BE0028;
+        color: white;
+    }
+
+    #edit-log th:nth-child(1) {
+        width: auto
+    }
+
+    #edit-log th:nth-child(2) {
+        width: 25%
+    }
+
+    #edit-log th:nth-child(3) {
+        width: 25%
+    }
+
+    #edit-log th:nth-child(4) {
+        width: 10%
+    }
+
+    #edit-log th:nth-child(5) {
+        width: 10%
+    }
+
+.modal-dialog {
+    max-width: 90%;
+}
+
+    .modal-dialog button {
+        color: black;
+    }
+
+#do_item_detail {
+    height: 570px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-bottom: 10px;
+}
+
+.fas {
+    cursor: pointer;
+}
+
+.input-label {
+    background-color: transparent;
+    border: none;
+    font-weight: bold;
+}
+
+.uploaded-file-class {
+    padding-left: 10px;
+}
+
+.card {
+    border: 1px solid lightgrey;
+    background: #f8f9fa;
+}
+
+.card-body {
+    background: white;
+}
+
+.btn-delete{
+    text-align:center;
+}

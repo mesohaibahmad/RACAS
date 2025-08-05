@@ -1,0 +1,200 @@
+﻿@model RACAS.Models.User
+@using RACAS.Model
+@using RACAS.Controllers
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Localization
+@using System.Globalization
+
+@inject IStringLocalizer<HomeController> Localizer
+@{
+    string currCul = "";
+    string curCulName = "English";
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+
+    if (requestCulture.RequestCulture.Culture.Name == "ar-SA")
+    {
+        curCulName = "Arabic";
+        currCul = "https://cdn.datatables.net/plug-ins/1.12.1/i18n/ar.json";
+    }
+
+    List<MenuViewModel> menuList = (List<MenuViewModel>)ViewData["UserRoleMenu"];
+    bool CanCreate = false, CanDelete = false, CanEdit = false, CanExport = false, CanEmail = false;
+    if (menuList?.Count > 0)
+    {
+        foreach (var m in menuList)
+        {
+            if (m.ModuleId == "liusers")
+            {
+                if (m.ActionName == "Create")
+                    CanCreate = true;
+                if (m.ActionName == "Edit")
+                    CanEdit = true;
+                if (m.ActionName == "Delete")
+                    CanDelete = true;
+                if (m.ActionName == "Export")
+                    CanExport = true;
+                if (m.ActionName == "Email")
+                    CanEmail = true;
+            }
+        }
+    }
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+
+<section class="content-header">
+  
+</section>
+
+<section class="content" id="appUser">
+<div class="row">
+<div class="col-md-4">
+</div>
+        <div class="col-md-4">
+            <!-- Widget: user widget style 1 -->
+            <div class="box box-widget widget-user">
+                <!-- Add the bg color to the header using any of the bg-* classes -->
+                <div class="widget-user-header bg-aqua-active">
+                    <h3 class="widget-user-username">@Model.UserName</h3>
+                    <h5 class="widget-user-desc"></h5>
+                </div>
+                <div class="widget-user-image">
+                    <img class="img-circle" src="~/dist/img/user1-128x128.png" alt="@Model.FirstName @Model.LastName">
+                </div>
+                <div class="box-footer">
+                    <div class="row">
+                        <div class="col-sm-12 border-right">
+                            <div class="description-block">
+                                <h5 class="description-header">@Model.FirstName @Model.LastName</h5>
+                                <span class="description-text">@Model.Email</span>
+                            </div><!-- /.description-block -->
+                        </div><!-- /.col -->
+                       
+                    </div><!-- /.row -->
+                    <div class="row">
+                        <div class="col-md-12" style="padding:20px">
+                            <input type="hidden" value="@Model.Id" v-model="d.UserId" />
+                            <form id="UserForm">
+
+
+                                <label> @Localizer["FirstName"] <span style="color:red">*</span></label>
+                                <input type="text" class="form-control validate[required]" value="@Model.FirstName" v-model="d.FirstName" />
+
+                                <label> @Localizer["LastName"] <span style="color:red">*</span></label>
+                                <input type="text" class="form-control validate[required]" value="@Model.LastName" v-model="d.LastName" />
+
+                                <label> @Localizer["UserName"] <span style="color:red">*</span></label>
+                                <input type="text" readonly class="form-control validate[required]" value="@Model.UserName" v-model="d.UserName" />
+
+                                <label> @Localizer["Email"] <span style="color:red">*</span></label>
+                                <input type="text" class="form-control validate[required]" value="@Model.Email" v-model="d.Email" />
+
+                                <label> @Localizer["Password"] <span style="color:red">*</span></label>
+                                <input type="password" class="form-control validate[required]"  v-model="d.Password" />
+
+                            </form>
+                            <button type="button" class="btn btn-primary" style="margin-top:20px;text-align:right" v-on:click="insert($event)">@Localizer["Save"]</button>
+                        </div>
+
+                    </div><!-- /.row -->
+                    </div>
+                </div>
+            </div><!-- /.widget-user -->
+        </div>
+</div>
+
+ 
+</section>
+
+
+
+@section scripts {
+        <script>
+
+            var objCommon = new Common();
+            var LanguageUrl = '@currCul';
+            $(function () {
+            })
+            $(document).ready(function () {
+
+                var app = new Vue({
+                    el: '#appUser',
+                    data: {
+                        d: {
+                        UserId:'@Model.Id',
+                        FirstName: '@Model.FirstName',
+                        LastName: '@Model.LastName',
+                        UserName: '@Model.UserName',
+                        Email: '@Model.Email',
+                        Password: '',
+                    }
+                    },
+                    mounted() {
+                     
+                    },
+                    methods: {
+                            insert($event) {
+
+
+                                if (!objCommon.Validate("#UserForm"))
+                                    return;
+
+                                     this.d.UserId = Number(this.d.UserId);
+                                var dataParam = {
+                                    UserId: this.d.UserId,
+                                    FirstName: this.d.FirstName,
+                                    LastName: this.d.LastName,
+                                    UserName: this.d.UserName,
+                                    Email: this.d.Email,
+                                    Password: this.d.Password,
+
+                                };
+
+
+                                objCommon.AjaxCall("/Users/EditUser", JSON.stringify(dataParam), "POST", true, function (d) {
+
+                                 
+                                        window.location.reload();
+                                  
+                                  
+                                }, $event.currentTarget)
+
+                      
+                            },
+                      
+                        Edit(Id, FirstName, LastName, UserName, Email, Password) {
+                          console.log(FirstName);
+                          this.d = {};
+                        this.d.UserId = Id;
+                        this.d.FirstName = FirstName;
+                        this.d.LastName = LastName;
+                        this.d.UserName = UserName;
+                        this.d.Email = Email;
+                        this.d.Password = Password;
+                           
+                            
+                          
+                        },
+                        Alert(id) {
+
+                        },
+                 
+                       
+                    } 
+
+                });
+
+
+                setTimeout(function () {
+                    $("#leftmenu li").removeClass("active");
+                    $("#lipayments").addClass("active");
+
+                }, 200)
+
+            })
+        </script>
+
+}

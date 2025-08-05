@@ -1,0 +1,438 @@
+﻿@using Microsoft.AspNetCore.Http
+@using RACAS.Model
+@using RACAS.Controllers
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Localization
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IStringLocalizer<HomeController> Localizer
+
+@{
+    string _userTypeId = Context.Request.Query["UserTypeId"];
+    string curCulName = "English";
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+
+    if (requestCulture.RequestCulture.Culture.Name == "ar-SA")
+    {
+        curCulName = "Arabic";
+    }
+
+
+    List<MenuViewModel> menuList = (List<MenuViewModel>)ViewData["UserRoleMenu"];
+    bool CanCreate = false, CanDelete = false, CanEdit = false, CanExport = false, CanEmail = false, CanRead = false;
+    if (menuList?.Count > 0)
+    {
+        foreach (var m in menuList)
+        {
+            if (m.ModuleId == "liusertypes")
+            {
+                if (m.ActionName == "Create")
+                    CanCreate = true;
+                if (m.ActionName == "Edit")
+                    CanEdit = true;
+                if (m.ActionName == "Delete")
+                    CanDelete = true;
+                if (m.ActionName == "Export")
+                    CanExport = true;
+                if (m.ActionName == "Email")
+                    CanEmail = true;
+                if (m.ActionName == "Read")
+                    CanRead = true;
+            }
+        }
+    }
+    int UserTypeId = 0;
+    try
+    {
+        UserTypeId =Convert.ToInt32(HttpContextAccessor.HttpContext.Session.GetString("UserTypeId"));
+        if (UserTypeId == 1)
+        {
+            CanCreate = true; CanDelete = true; CanEdit = true; CanExport = true; CanEmail = true; CanRead = true;
+        }
+    }
+    catch (Exception ex)
+    {
+       
+    }
+    
+   
+
+}
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@model RACAS.Model.UserDetails
+@{
+    var existingUserTypes = new List<int>();
+    // Predefined list of user types with their IDs
+    var userTypes = new List<dynamic>
+                {
+                new { Id = 1, Name = "Admin" },
+                new { Id = 2, Name = "LL (Head of logistics)" },
+                new { Id = 3, Name = "VTL (Head of distribution)" },
+                new { Id = 4, Name = "HL (Branch manager)" },
+                new { Id = 5, Name = "SCL (Service center manager)" },
+                new { Id = 6, Name = "AL (Department manager)" },
+                new { Id = 7, Name = "SCMA (Service center employee)" }
+                };
+
+
+                 foreach(var type in Model.UserTypeList)
+                    {
+                        foreach(var user in userTypes)
+                        {
+                        // Assuming Model.ExistingUserTypes contains the user types already in the database
+
+                            if( type.UserTypeId == user.Id)
+                            {
+                                existingUserTypes.Add(user.Id);
+                            }
+
+                    }
+           
+                }
+
+
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+<section class="content-header">
+    <h1>
+        @Localizer["UserTypes"]
+    </h1>
+    <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> @Localizer["Home"]</a></li>
+        <li><a href="#">@Localizer["UserTypes"]</a></li>
+    </ol>
+</section>
+
+<!-- Main content -->
+<section class="content" id="apporg">
+    <div class="row">
+        <div class="col-xs-7">
+
+
+            <div class="box">
+                <div class="box-header">
+                    <input type="hidden" v-model="d.Id" />
+                    <div class="col-md-5">
+                        <form id="validationForm">
+                            <label> @Localizer["UserType"] <span style="color:red">*</span></label>
+                            <input type="text" class="form-control validate[required]" :disabled="d.Id <= 7 && d.Id > 0" v-model="d.UserType" />
+                        </form>
+                    </div>
+                    <div class="col-md-2" style="padding-top:25px">
+                        @{
+                            if (CanCreate)
+                            {
+                                        <button type="button" class="btn btn-primary" v-on:click="insert($event)">@Localizer["Save"]</button>
+                            }
+                        }
+
+                    </div>
+                </div>
+                <div class="box-body">
+
+                    <div class="row" style="margin-left:0px; margin-right:0px">
+
+                        <div class="col-md-12" style="overflow-x: auto; padding-left: 5px; padding-right: 5px; padding-bottom: 20px">
+                            <table class="table table-bordered table-striped datatable" id="example1">
+                                <thead>
+                                    <tr>
+                                        <th>#@Localizer["No"]</th>
+                                        <th>@Localizer["UserType"]</th>
+
+                                        @{
+                                            if (CanEdit)
+                                            {
+                                                        <th>@Localizer["Edit"]</th>
+                                            }
+                                        }
+
+                                        @{
+                                            if (CanDelete)
+                                            {
+                                                        <th style="width:20px">@Localizer["Delete"]</th>
+                                            }
+                                        }
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if (Model?.UserTypeList.Count > 0 && CanRead)
+                                        {
+                                            for (int i = 0; i < Model.UserTypeList.Count; i++)
+                                            {
+                                                var r = Model.UserTypeList[i];
+                                                        <tr>
+                                                            <td>@(i + 1)</td>
+
+
+                                                            <td>@r.TypeName </td>
+                                                            @{
+                                                        if (CanEdit)
+                                                        {
+                                                                            <td><a href="UserTypes?UserTypeId=@r.UserTypeId">Edit</a> </td>
+                                                        }
+                                                            }
+
+
+                                                            @{
+                                                        if (CanDelete)
+                                                        {
+                                                                            <td> <a v-on:click="Del('@r.Id')"> @Localizer["Delete"] </a></td>
+                                                        }
+                                                            }
+
+                                                        </tr>
+                                            }
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-5">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">@Localizer["AssignRoles"]</h3>
+                </div>
+                <div class="box-body">
+                    <div id="jsTree">
+                        <ul>
+                            @{
+                                if (Model.ModuleList?.Count() > 0)
+                                {
+                                    foreach (var m in Model.ModuleList)
+                                    {
+                                                <li class="treeview" id="@m.Id">
+                                                    <a href="#">
+                                                        <i class="fa fa-users"></i>
+                                                        @{
+                                                    if (curCulName == "Arabic")
+                                                    {
+                                                                        <span> @m.ArabicModuleName</span>
+                                                    }
+                                                    else
+                                                    {
+                                                                        <span> @m.ModuleName</span>
+                                                    }
+                                                        }
+
+                                                    </a>
+                                                    <ul class="treeview-menu">
+                                                        @foreach (var n in m.ActionList)
+                                                {
+
+                                                            <li id="@(m.Id+"_"+n.Id)">
+                                                                <a>
+                                                                    <i class="fa fa-circle-o"></i>
+                                                                    <span> @n.ActionName @m.ModuleName</span>
+                                                                </a>
+                                                            </li>
+                                                }
+
+                                                    </ul>
+                                                </li>
+                                    }
+                                }
+                            }
+
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.col -->
+    </div>
+    <div class="row">
+        <div class="col-xs-3 card">
+            <ul class="list-group list-group-flush">
+            
+                    @foreach (var userType in userTypes)
+                    {
+                        // Only display user types that are not already in the database
+                        if (!existingUserTypes.Contains(userType.Id))
+                        {
+                            <li style="display: flex; justify-content:space-between;" class="list-group-item mb-2px">
+                                <span>@userType.Name</span>
+                                <span>
+                                    <a v-on:click="set(@userType.Id, '@userType.Name')" class="btn btn-primary btnaddnew">
+                                        <i class="fa fa-plus"></i> @Localizer["Add"]
+                                    </a>
+                                </span>
+                            </li>
+                        }
+                    }
+                </ul>
+
+    
+        </div>
+
+    </div>
+
+</section>
+
+@section scripts {
+    <script src="~/JStree/jstree.min.js"></script>
+    <script>
+
+        var objCommon = new Common();
+        var currCulName = '@curCulName';
+        $(document).ready(function () {
+            $("#leftmenu li").removeClass("active");
+            $("#liusertypes").addClass("active");
+
+            var RightsData = [];
+
+            var app = new Vue({
+                el: '#apporg',
+                data: {
+                    d: {
+                        UserType: '@Model.UserType.TypeName',
+                        Id: '@Model.UserType.UserTypeId'
+                    },
+                    UserTypeId: '@_userTypeId'
+                },
+                methods: {
+                    insert($event) {
+
+                    
+                        if (!objCommon.Validate("#validationForm"))
+                            return;
+
+
+
+                        var dataParam = {
+                            UserTypeId: Number(this.d.Id),
+                            TypeName: this.d.UserType,
+                            UserRights: RightsData
+                        };
+
+
+                        objCommon.AjaxCall("/Users/insertType", JSON.stringify(dataParam), "POST", true, function (d) {
+                            console.log(d);
+                            if (d == "success") {
+                                Swal.fire({
+                                    title: "Success!",
+                                    text: "Saved successfully.",
+                                    icon: "success"
+                                });
+                                window.location.reload();
+                            }
+                            else {
+                                objCommon.ShowMessage(d, "error");
+                            }
+                        }, $event == null ? "" : $event.currentTarget)
+
+                    },
+                    set(Id, Name) {
+                        this.d.Id = Id;
+                        this.d.UserType = Name;
+
+                        setTimeout(() => {
+                            this.insert(null);
+                        }, 200); 
+                    },
+
+                    Alert(id) {
+                        this.d.Id = id;
+                    },
+                    Edit(id, name) {
+                        this.d.Id = id;
+                        this.d.UserType = name;
+
+
+
+                    },
+                    Del(id) {
+                        Swal.fire({
+                            title: "Are you sure?",
+                            text: "You won't be able to revert this!",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Yes, delete it!"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+
+
+                                var param = {
+                                    UserTypeId: Number(id),
+                                }
+                                objCommon.AjaxCall("/Users/deleteUserType", $.param(param), "GET", true, function (response) {
+
+                                    Swal.fire({
+                                        title: "Deleted!",
+                                        text: "Record has been deleted.",
+                                        icon: "success"
+                                    });
+                                    window.location.reload();
+                                })
+
+
+                            }
+                        });
+                       
+
+                    }
+                }
+            });
+
+
+            $('#jsTree').jstree({
+                "checkbox": {
+                    "keep_selected_style": false
+                },
+                "plugins": ["checkbox"],
+                "types": {
+                    "#": {
+                        "max_children": 1,
+                        "max_depth": 4,
+                        "valid_children": ["root"]
+                    },
+                    "root": {
+                        "icon": "/static/3.3.11/assets/images/tree_icon.png",
+                        "valid_children": ["default"]
+                    },
+                    "default": {
+                        "icon": "/static/3.3.11/assets/images/tree_icon.png",
+                        "valid_children": ["default"]
+                    },
+                    "file": {
+                        "icon": "/static/3.3.11/assets/images/tree_icon.png",
+                        "valid_children": []
+                    }
+                },
+            });
+            $('#jsTree').on("changed.jstree", function (e, data) {
+                // const selectedIds = data.selected; // Get selected node IDs
+                // const parentIds = selectedIds.map(id => {
+                //     const node = $('#jsTree').jstree().get_node(id);
+                //     return node.parent !== '#' ? node.parent : null; // Get parent ID if it exists
+                // }).filter(id => id !== null); // Filter out null values
+
+                // // Combine selected node IDs and their parent IDs
+                // const allSelectedIds = [...new Set([...selectedIds, ...parentIds])];
+                RightsData = data.selected;
+            });
+            $('#jsTree').on("ready.jstree", function (e, data) {
+
+                var values = '@Model?.Selected';
+                var array = values.split(",");
+
+                $('#jsTree').jstree("select_node", array);
+            });
+
+
+
+            $('#ignismyModal').on('hidden.bs.modal', function () {
+                window.location.href = '@Url.Action("Index", "Users")';
+            });
+        })
+    </script>
+}
