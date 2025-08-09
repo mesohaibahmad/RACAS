@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 
@@ -36,15 +37,30 @@ using System.Threading.Tasks;
             return list.Contains(source, StringComparer.OrdinalIgnoreCase);
         }
 
-    public static T DeepClone<T>(this T a)
+    //public static T DeepClone<T>(this T a)
+    //{
+    //    using (MemoryStream stream = new MemoryStream())
+    //    {
+    //        BinaryFormatter formatter = new BinaryFormatter();
+    //        formatter.Serialize(stream, a);
+    //        stream.Position = 0;
+    //        return (T)formatter.Deserialize(stream);
+    //    }
+    //}
+    public static T DeepClone<T>(this T source)
     {
-        using (MemoryStream stream = new MemoryStream())
+        if (source == null)
+            return default!;
+
+        var options = new JsonSerializerOptions
         {
-            BinaryFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(stream, a);
-            stream.Position = 0;
-            return (T)formatter.Deserialize(stream);
-        }
+            WriteIndented = false,
+            PropertyNameCaseInsensitive = true,
+            IncludeFields = true, // Optional: include public fields if needed
+        };
+
+        var json = JsonSerializer.Serialize(source, options);
+        return JsonSerializer.Deserialize<T>(json, options)!;
     }
 
 }

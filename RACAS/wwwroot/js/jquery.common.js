@@ -53,16 +53,18 @@ var Common = function () {
             error: function (jqXhr, textStatus, errorThrown) {
                 $(btn).val(value).prop("disabled", false); // for input element
                 $(btn).removeAttr("style").html(value).prop("disabled", false); // for button element
+            
+             
+                    if (jqXhr.getResponseHeader('Content-Type').indexOf('application/json') > -1) {
+                        // only parse the response if you know it is JSON
+                        var error = $.parseJSON(jqXhr.responseText);
+                        _this.ShowMessage(error, "error");
+                    } else {
 
-                if (jqXhr.getResponseHeader('Content-Type').indexOf('application/json') > -1) {
-                    // only parse the response if you know it is JSON
-                    var error = $.parseJSON(jqXhr.responseText);
-                    _this.ShowMessage(error, "error");
-                } else {
-                   
-                    _this.ShowMessage("Oops! Something went wrong, please try again later.", "error");
-                }
-                //$(".modal").modal("hide");
+                        _this.ShowMessage("Oops! Something went wrong, please try again later.", "error");
+                    }
+                    //$(".modal").modal("hide");
+                
             }
         });
     }

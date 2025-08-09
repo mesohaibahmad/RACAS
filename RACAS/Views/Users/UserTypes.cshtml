@@ -66,7 +66,7 @@
     // Predefined list of user types with their IDs
     var userTypes = new List<dynamic>
                 {
-                new { Id = 1, Name = "Admin" },
+              
                 new { Id = 2, Name = "LL (Head of logistics)" },
                 new { Id = 3, Name = "VTL (Head of distribution)" },
                 new { Id = 4, Name = "HL (Branch manager)" },
@@ -169,7 +169,7 @@
 
                                                             <td>@r.TypeName </td>
                                                             @{
-                                                        if (CanEdit)
+                                                        if (CanEdit && r.UserTypeId != 1)
                                                         {
                                                                             <td><a href="UserTypes?UserTypeId=@r.UserTypeId">Edit</a> </td>
                                                         }
@@ -177,7 +177,7 @@
 
 
                                                             @{
-                                                        if (CanDelete)
+                                                        if (CanDelete && r.UserTypeId != 1)
                                                         {
                                                                             <td> <a v-on:click="Del('@r.Id')"> @Localizer["Delete"] </a></td>
                                                         }

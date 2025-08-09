@@ -102,8 +102,8 @@
                 <div class="inner">
                     <h3 style="margin-bottom:-3px">{{ Summary.TotalOrderedCount  }}</h3>
                     <p style="margin-bottom:0px">Total Ordered Payments</p>
-                    <p style="margin-bottom:0px;font-weight:bold">Income: {{ Summary.TotalOrderededExpense || 0 }}</p>
-                    <p style="margin-bottom:0px;font-weight:bold">Expense: {{ Summary.TotalOrderededExpense || 0 }}</p>
+                    <p style="margin-bottom:0px;font-weight:bold">Income: {{ Summary.TotalOrderedIncome || 0 }}</p>
+                    <p style="margin-bottom:0px;font-weight:bold">Expense: {{ Summary.TotalOrderedExpense || 0 }}</p>
                 </div>
                 <div class="icon">
                     <i class="ion ion-bag"></i>
@@ -115,8 +115,8 @@
                 <div class="inner">
                     <h3 style="margin-bottom:-3px">{{ Summary.TotalControlCheckedCount }}</h3>
                     <p style="margin-bottom:0px">Control Checked Payments</p>
-                    <p style="margin-bottom:0px;font-weight:bold">Income: {{ Summary.TotalControlCheckedExpense || 0 }}</p>
-                    <p style="margin-bottom:0px;font-weight:bold">Expense: {{ Summary.TotalSControlCheckedExpense || 0 }}</p>
+                    <p style="margin-bottom:0px;font-weight:bold">Income: {{ Summary.TotalControlCheckedIncome || 0 }}</p>
+                    <p style="margin-bottom:0px;font-weight:bold">Expense: {{ Summary.TotalControlCheckedExpense || 0 }}</p>
                 </div>
                 <div class="icon">
                     <i class="ion ion-checkmark-round"></i>
@@ -199,86 +199,360 @@
                     this.yearList.push(year);
                 }
             },
-            LoadPaymentData($event) {
+        //     LoadPaymentData($event) {
                
-                let dthis = this;
-                 var param = {
-                            Year: this.selectedYear,
-                            Month: this.selectedMonth
-                        };
+        //         let dthis = this;
+        //          var param = {
+        //                     Year: this.selectedYear,
+        //                     Month: this.selectedMonth
+        //                 };
 
-                 objCommon.AjaxCall("/home/loadValues", $.param(param), "GET", true, function (d) {
-                     console.log(d);
-                             let arr =  d ;
+        //          objCommon.AjaxCall("/home/loadValues", $.param(param), "GET", true, function (d) {
+        //              console.log(d);
+        //                      let arr =  d ;
                     
-                            dthis.Summary = arr.Stats[0];
+        //                     dthis.Summary = arr.Stats[0];
+                            
                      
 
-                        var Expense = arr.Graph.map(item => Math.round(item.Expense));
-                        var Income = arr.Graph.map(item => Math.round(item.Income));
-                        var Labels = arr.Graph.map(item => item.Labels);
-                        console.log(Expense, Income, Labels);
+        //                 var Expense = arr.Graph.map(item => Math.round(item.Expense));
+        //                 var Income = arr.Graph.map(item => Math.round(item.Income));
+        //                 var Labels = arr.Graph.map(item => item.Labels);
+        //                 console.log(Expense, Income, Labels);
 
-                        var options = {
-                            plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top',
-                                    labels: {
+        //                 var options = {
+        //                     plugins: {
+        //                         legend: {
+        //                             display: true,
+        //                             position: 'top',
+        //                             labels: {
                                        
-                                        padding: 10 // Adjust padding
-                                    }
-                                }
-                            },
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
+        //                                 padding: 10 Adjust padding
+        //                             }
+        //                         }
+        //                     },
+        //                     responsive: true,
+        //                     maintainAspectRatio: false,
+        //                     scales: {
 
-                                x: {
-                                    beginAtZero: true
+        //                         x: {
+        //                             beginAtZero: true
                                    
-                                },
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
+        //                         },
+        //                         y: {
+        //                             beginAtZero: true,
+        //                             ticks: {
                                       
-                                        callback: function (value) {
-                                            return new Intl.NumberFormat('en-US', {
-                                                style: 'currency',
-                                                currency: 'USD'
-                                            }).format(value);
-                                        }
-                                    }
-                                }
-                            }
-                        };
+        //                                 callback: function (value) {
+        //                                     return new Intl.NumberFormat('en-US', {
+        //                                         style: 'currency',
+        //                                         currency: 'USD'
+        //                                     }).format(value);
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                 };
 
-                        const ctx = document.getElementById('graphCompare').getContext('2d');
+        //                 const ctx = document.getElementById('graphCompare').getContext('2d');
+        //                         if (window.chart1) {
+        //     window.chart1.destroy();
+        // }
+        //                     window.chart1 = new Chart(ctx, {
+        //                         type: 'line',
+        //                         data: {
+        //                         labels: Labels,
+        //                             datasets: [
+        //                                 {
+        //                                     type: 'line', Type of chart for this dataset
+        //                                 data: Expense,
+        //                                 label: 'Expense',
+        //                                      borderColor: 'red',
+        //                                   backgroundColor: 'rgba(255,0,0,0.1)',
+        //                                   fill: false
+        //                                 },
+        //                                 {
+        //                                     type: 'line', Type of chart for this dataset
+        //                                 data: Income,
+        //                                 label: 'Income',
+        //                                  borderColor: 'green',
+        //                                  backgroundColor: 'rgba(0,255,0,0.1)',
+        //                                  fill: false
+        //                                 }
+        //                             ]
+        //                         },
+        //                         options: options
+        //                     });
 
-                           var chart1 = new Chart(ctx, {
-                                type: 'mixed',
-                                data: {
-                                labels: Labels,
-                                    datasets: [
-                                        {
-                                            type: 'line', // Type of chart for this dataset
-                                        data: Expense,
-                                        label: 'Expense'
-                                        },
-                                        {
-                                            type: 'line', // Type of chart for this dataset
-                                        data: Income,
-                                        label: 'Income'
-                                        }
-                                    ]
-                                },
-                                options: options
-                            });
-
-                        }, $event == null ? "" : $event.currentTarget);
+        //                 }, $event == null ? "" : $event.currentTarget);
            
-            },
-          
+        //     },
+
+
+
+
+                LoadPaymentData($event) {
+            let dthis = this;
+            var param = {
+                Year: this.selectedYear,
+                Month: this.selectedMonth
+            };
+
+            // objCommon.AjaxCall("/home/loadValues", $.param(param), "GET", true, function (d) {
+            //     let arr = d;
+            //     dthis.Summary = arr.Stats[0];
+
+            //     var Expense = arr.Graph.map(item => Math.round(item.Expense));
+            //     var Income = arr.Graph.map(item => Math.round(item.Income));
+            //     var Labels = arr.Graph.map(item => item.Labels);
+
+            //     🛑 Extract anomaly markers
+            //     var PointStyles = arr.Graph.map(item => item.IsAnomaly ? 'rectRot' : 'circle');
+            //     var PointBackgrounds = arr.Graph.map(item => item.IsAnomaly ? 'red' : 'rgba(255,0,0,0.5)');
+
+            //     🔵 Prediction Data
+            //     var PredictedExpense = arr.Predicted.map(item => Math.round(item.PredictedExpense));
+            //     var PredictedLabels = arr.Predicted.map(item => "Day " + item.Day);
+            //       var PredictedIncome = arr.Predicted.map(item => Math.round(item.PredictedIncome));
+                
+
+            //     Merge labels and predicted labels
+            //     Labels = Labels.concat(PredictedLabels);
+
+            //     var options = {
+            //         plugins: {
+            //             legend: {
+            //                 display: true,
+            //                 position: 'top',
+            //                 labels: {
+            //                     padding: 10
+            //                 }
+            //             },
+            //             tooltip: {
+            //                 callbacks: {
+            //                     label: function (context) {
+            //                         let label = context.dataset.label || '';
+            //                         if (label === 'Expense' && arr.Graph[context.dataIndex] && arr.Graph[context.dataIndex].IsAnomaly) {
+            //                             return `${label}: ${context.formattedValue} ⚠️ Anomaly`;
+            //                         }
+            //                         return `${label}: ${context.formattedValue}`;
+            //                     }
+            //                 }
+            //             }
+            //         },
+            //         responsive: true,
+            //         maintainAspectRatio: false,
+            //         scales: {
+            //             x: {
+            //                 beginAtZero: true
+            //             },
+            //             y: {
+            //                 beginAtZero: true,
+            //                 ticks: {
+            //                     callback: function (value) {
+            //                         return new Intl.NumberFormat('en-US', {
+            //                             style: 'currency',
+            //                             currency: 'USD'
+            //                         }).format(value);
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     };
+
+            //     const ctx = document.getElementById('graphCompare').getContext('2d');
+            //     if (window.chart1) {
+            //         window.chart1.destroy();
+            //     }
+
+            //     window.chart1 = new Chart(ctx, {
+            //         type: 'line',
+            //         data: {
+            //             labels: Labels,
+            //             datasets: [
+            //                 {
+            //                     type: 'line',
+            //                     data: Expense,
+            //                     label: 'Expense',
+            //                     borderColor: 'red',
+            //                     backgroundColor: 'rgba(255,0,0,0.1)',
+            //                     fill: false,
+            //                     pointStyle: PointStyles,
+            //                     pointBackgroundColor: PointBackgrounds,
+            //                     pointRadius: 5
+            //                 },
+            //                 {
+            //                     type: 'line',
+            //                     data: Income,
+            //                     label: 'Income',
+            //                     borderColor: 'green',
+            //                     backgroundColor: 'rgba(0,255,0,0.1)',
+            //                     fill: false
+            //                 },
+            //                     {
+            //                         type: 'line',
+            //                         data: PredictedIncome,
+            //                         label: 'Predicted Income',
+            //                         borderColor: 'yellow',
+            //                         borderDash: [5, 5],
+            //                         backgroundColor: 'rgba(255, 253, 141, 0.8)',
+            //                         fill: false,
+            //                         pointStyle: 'triangle',
+            //                         pointRadius: 4
+            //                     },
+            //                 {
+            //                     type: 'line',
+            //                     data: PredictedExpense,
+            //                     label: 'Predicted Expense',
+            //                     borderColor: 'blue',
+            //                     borderDash: [5, 5],
+            //                     backgroundColor: 'rgba(0,0,255,0.1)',
+            //                     fill: false,
+            //                     pointStyle: 'triangle',
+            //                     pointRadius: 4
+            //                 }
+            //             ]
+            //         },
+            //         options: options
+            //     });
+
+            // }, $event == null ? "" : $event.currentTarget);
+
+
+                    objCommon.AjaxCall("/home/loadValues", $.param(param), "GET", true, function (d) {
+            let arr = d;
+            dthis.Summary = arr.Stats[0];
+
+            var Expense = arr.Graph.map(item => Math.round(item.Expense));
+            var Income = arr.Graph.map(item => Math.round(item.Income));
+            var Labels = arr.Graph.map(item => item.Labels);
+
+            // 🔴 Anomaly markers for Expense
+            var ExpensePointStyles = arr.Graph.map(item => item.IsExpenseAnomaly ? 'rectRot' : 'circle');
+            var ExpensePointBackgrounds = arr.Graph.map(item => item.IsExpenseAnomaly ? 'red' : 'rgba(255,0,0,0.5)');
+
+            // 🟢 Anomaly markers for Income
+            var IncomePointStyles = arr.Graph.map(item => item.IsIncomeAnomaly ? 'cross' : 'circle');
+            var IncomePointBackgrounds = arr.Graph.map(item => item.IsIncomeAnomaly ? 'orange' : 'rgba(0,255,0,0.5)');
+
+            // 🔵 Prediction Data
+            var PredictedExpense = arr.Predicted.map(item => Math.round(item.PredictedExpense));
+            var PredictedIncome = arr.Predicted.map(item => Math.round(item.PredictedIncome));
+            var PredictedLabels = arr.Predicted.map(item => "Day " + item.Day);
+
+            // Merge labels and prediction padding
+            Labels = Labels.concat(PredictedLabels);
+
+            var options = {
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            padding: 10
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.dataset.label || '';
+                                let val = context.formattedValue;
+
+                                // Handle anomalies in both datasets
+                                if (label === 'Expense' && arr.Graph[context.dataIndex]?.IsExpenseAnomaly) {
+                                    return `${label}: ${val} ⚠️ Anomaly`;
+                                }
+                                if (label === 'Income' && arr.Graph[context.dataIndex]?.IsIncomeAnomaly) {
+                                    return `${label}: ${val} ⚠️ Anomaly`;
+                                }
+                                return `${label}: ${val}`;
+                            }
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return new Intl.NumberFormat('en-US', {
+                                    style: 'currency',
+                                    currency: 'USD'
+                                }).format(value);
+                            }
+                        }
+                    }
+                }
+            };
+
+            const ctx = document.getElementById('graphCompare').getContext('2d');
+            if (window.chart1) {
+                window.chart1.destroy();
+            }
+
+            window.chart1 = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            data: Expense,
+                            label: 'Expense',
+                            borderColor: 'red',
+                            backgroundColor: 'rgba(255,0,0,0.1)',
+                            fill: false,
+                            pointStyle: ExpensePointStyles,
+                            pointBackgroundColor: ExpensePointBackgrounds,
+                            pointRadius: 5
+                        },
+                        {
+                            type: 'line',
+                            data: Income,
+                            label: 'Income',
+                            borderColor: 'green',
+                            backgroundColor: 'rgba(0,255,0,0.1)',
+                            fill: false,
+                            pointStyle: IncomePointStyles,
+                            pointBackgroundColor: IncomePointBackgrounds,
+                            pointRadius: 5
+                        },
+                        {
+                            type: 'line',
+                            data: PredictedIncome,
+                            label: 'Predicted Income',
+                            borderColor: 'yellow',
+                            borderDash: [5, 5],
+                            backgroundColor: 'rgba(255, 253, 141, 0.8)',
+                            fill: false,
+                            pointStyle: 'triangle',
+                            pointRadius: 4
+                        },
+                        {
+                            type: 'line',
+                            data: PredictedExpense,
+                            label: 'Predicted Expense',
+                            borderColor: 'blue',
+                            borderDash: [5, 5],
+                            backgroundColor: 'rgba(0,0,255,0.1)',
+                            fill: false,
+                            pointStyle: 'triangle',
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: options
+            });
+
+        }, $event == null ? "" : $event.currentTarget);
+
+        }
+
            
         }
     });

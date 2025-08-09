@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -11,20 +6,27 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using RACAS.Utils;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.Information;
 using Quartz;
+using RACAS.Constants;
+using RACAS.DAL;
+using RACAS.Filters;
 using RACAS.Models;
 using RACAS.Services;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.AspNetCore.Localization;
+using RACAS.Utils;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
-using RACAS.Filters;
-using RACAS.DAL;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace RACAS
 {
@@ -159,7 +161,33 @@ namespace RACAS
                 //endpoints.MapHub<ClientConnectivityHub>("/clients-hub");
                 endpoints.MapControllers();
             });
-        }
+            using (var scope = app.ApplicationServices.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<RACASContext>();
+
+                // ✅ Check if an admin user already exists (UserTypeId == 1)
+                if (!db.Users.Any(u => u.UserTypeId == 1))
+                {
+                    db.Users.Add(new User
+                    {
+                        FirstName = "Admin",
+                        LastName = "User",
+                        UserName = "admin",
+                        Password = "123", // ⚠️ Plain text — use hashing in production!
+                        UserTypeId = 1,
+                        Email = "admin@gmail.com",
+                        ModifiedBy = CommonDataParam.LoginId,
+                        ModifiedDate = DateTime.UtcNow,
+                        CreatedDate = DateTime.UtcNow,
+                        CreatedBy = CommonDataParam.LoginId,    
+                        RecordStatus = "Active",
+                    });
+
+                    db.SaveChanges();
+                    Console.WriteLine("✅ Default admin user created (username: admin, password: admin123)");
+                }
+            }
+            }
     }
 
 

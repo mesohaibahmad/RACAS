@@ -75,7 +75,7 @@ namespace RACAS.Controllers
 
                     return Ok(user);
                 }
-                return Unauthorized();
+                return Ok(new { success = false, message = "Invalid Username or Password." });
             }
             catch (Exception ex)
             {

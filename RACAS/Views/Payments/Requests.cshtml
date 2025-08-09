@@ -33,7 +33,7 @@
         {
             if (m.ModuleId == "lipayments")
             {
-                if (m.ActionName == "Create")
+                if (m.ActionName == "Insert")
                     CanCreate = true;
                 if (m.ActionName == "Edit")
                     CanEdit = true;
@@ -334,12 +334,10 @@
                                     @Localizer["Contract Number"]
 
                                 </th>
-                                <th>@Localizer["Invoice Number"]</th>
                                 <th>@Localizer["Partner"]</th>
                                 <th>@Localizer["Branch"]</th>
                                 <th>@Localizer["CausedBy"]</th>
                                 <th>@Localizer["Entry Date"]</th>
-                                <th>@Localizer["CostIncured Date"]</th>
 
                                 <th>@Localizer["Status"]</th>
                                 <th>@Localizer["Submitted"]</th>
@@ -372,12 +370,10 @@
                                     }
 
                                 </td>
-                                <td> {{item.InvoiceNumber}}</td>
                                 <td>{{item.CompanyName}} </td>
                                 <td>{{item.BranchName}} {{item.BranchCode}} </td>
                                 <td> {{item.Causes}}</td>
                                 <td>{{item.EntryDate}} </td>
-                                <td>{{item.CostIncuredDate}} </td>
 
                                 <td>
                                   <label class="label label-primary">{{item.RecordStatus}}</label>

@@ -42,6 +42,12 @@ namespace RACAS.Controllers
         [Route("Users/index")]
         public async Task<IActionResult> Index(int UserId=0)
         {
+            
+          var userTypeId =   int.Parse( HttpContext.Session.GetString("UserTypeId"));
+            if (userTypeId == 0 || userTypeId > 5)
+            {
+                return Unauthorized();
+            }
             var look = await userServices.GetUserType();
             var list2 = await userServices.GetList();
 

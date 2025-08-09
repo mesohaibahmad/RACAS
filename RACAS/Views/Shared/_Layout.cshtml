@@ -21,10 +21,11 @@
         .ToList();
 
     List<MenuViewModel> menuList = (List<MenuViewModel>)ViewData["UserRoleMenu"];
-
+    var distinctModules = menuList.GroupBy(m => m.ModuleName).Select(g => g.First()).ToList();
     string FirstName = "";
     string LastName = "";
     string UserId = "";
+    string UserTypeId = "";
     if (string.IsNullOrEmpty(HttpContextAccessor.HttpContext.Session.GetString("UserId")))
     {
         Context.Response.Redirect("/UserLogin/Login");
@@ -34,6 +35,7 @@
         FirstName = HttpContextAccessor.HttpContext.Session.GetString("FirstName");
         LastName = HttpContextAccessor.HttpContext.Session.GetString("LastName");
         UserId = HttpContextAccessor.HttpContext.Session.GetString("UserId");
+        UserTypeId = HttpContextAccessor.HttpContext.Session.GetString("UserTypeId");
     }
 
 }
@@ -109,7 +111,7 @@
         <header class="main-header">
             <!-- Logo -->
             <a class="logo">
-                <img src="~/dist/img/kacnd-logo.png" width="120px" style="margin-top:-3px" />
+                <img src="~/dist/img/my-logo.png" width="160px" style="margin-top:-3px" />
             </a>
             <!-- Header Navbar: style can be found in header.less -->
             <nav class="navbar navbar-static-top">
@@ -222,15 +224,43 @@
                 <!-- sidebar menu: : style can be found in sidebar.less -->
                 <ul class="sidebar-menu" id="leftmenu">
                     <li class="header">@Localizer["MAINNAVIGATION"]</li>
-                    <li class="treeview" id="lidashboard">
-                        <a href="@Url.Action("Index","Home")">
-                            <i class="fa fa-pie-chart"></i> <span>
-                                Dashboard
-                            </span>
+                  
+                   @if(UserTypeId != "1")
+                   {
+                    @if (menuList != null)
+                    { @foreach (var menu in distinctModules)
+                        {
+                            if (menu.ActionMethod == "UserTypes")
+                            {
+                                <li class="treeview" id="liusertypes">
+                                    <a href="@Url.Action("UserTypes", "Users", new { UserTypeId = 0 })">
+                                        <i class="fa fa-user"></i> <span>User Types</span>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="treeview" id="@menu.ModuleId">
+                                    <a href="@Url.Action(menu.ActionMethod, menu.Controller)">
+                                        <i class="@menu.MenuIcon"></i> <span>@menu.ModuleName</span>
+                                    </a>
+                                </li>
+                            }
+                        }
+                    }
+                   }
+                    
+                    else
+                    {
+                        <li class="treeview" id="lidashboard">
+                            <a href="@Url.Action("Index", "Home")">
+                                <i class="fa fa-pie-chart"></i> <span>
+                                    Dashboard
+                                </span>
 
-                        </a>
-                    </li>
-                    <li class="treeview" id="lipayments">
+                            </a>
+                        </li>
+                     <li class="treeview" id="lipayments">
                         <a href="@Url.Action("Requests","Payments")">
                             <i class="fa fa-users"></i> <span>
                                 Payment Requests
@@ -238,6 +268,7 @@
 
                         </a>
                     </li>
+                  
                     <li class="treeview" id="lipartners">
                         <a href="@Url.Action("Index","Partners")">
                             <i class="fa fa-users"></i> <span>
@@ -270,7 +301,7 @@
                             </span>
 
                         </a>
-                    </li>
+                    </li> } 
 
 
                  @*    @{
